@@ -48,6 +48,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const userId = ref('')
@@ -55,6 +56,7 @@ const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const router = useRouter()
 
 // ログイン処理
 const handleLogin = async () => {
@@ -85,16 +87,23 @@ const handleLogin = async () => {
 
     // ログイン成功
     if (response.data && response.status === 200) {
-      successMessage.value = 'ログインに成功しました'
+      const userData = response.data
       
-      // ログイン成功後の処理（例：ページ遷移、トークン保存など）
-      console.log('ログイン成功:', response.data)
+      // ユーザー情報をローカルストレージに保存
+      localStorage.setItem('user', JSON.stringify(userData))
       
-      // 例：ローカルストレージにユーザー情報を保存
-      // localStorage.setItem('user', JSON.stringify(response.data))
+      // adminフラグに基づいてページ遷移
+      if (userData.admin === true) {
+        successMessage.value = '管理者としてログインしました'
+        // 管理者ページに遷移
+        await router.push('/Admin_Home')
+      } else {
+        successMessage.value = 'ユーザーとしてログインしました'
+        // 一般ユーザーページに遷移
+        await router.push('/User_Home')
+      }
       
-      // 例：Vue Routerでページ遷移
-      // router.push('/dashboard')
+      console.log('ログイン成功:', userData)
       
       // フォームをクリア
       userId.value = ''
