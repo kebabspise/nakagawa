@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("asp-nakagawa")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca0fcd85dbd1524875c0041c12c711a8a75ea3ad")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+db628c95a3c2f9a46060f7af773af7216e4f7a4f")]
 [assembly: System.Reflection.AssemblyProductAttribute("asp-nakagawa")]
 [assembly: System.Reflection.AssemblyTitleAttribute("asp-nakagawa")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
