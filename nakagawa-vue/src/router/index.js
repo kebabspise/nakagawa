@@ -19,10 +19,50 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/Login',
+      name: 'Login',
+       component: () => import('../views/Login.vue'),
+    },
+    {
+      path: '/User_Home',
+      name: 'User_Home',
+       component: () => import('../views/User_Home.vue'),
+    },
+    {
       path: '/Admin_Home',
-      name: 'Admin_Home',
+      name: 'admin_home',
        component: () => import('../views/Admin_Home.vue'),
-    }
+    },
+    {
+      path: '/ShiftSubmit',
+      name: 'ShiftSubmit',
+       component: () => import('../views/ShiftSubmit.vue'),
+    },
+    {
+      path: '/ShiftCheck',
+      name: 'ShiftCheck',
+       component: () => import('../views/ShiftCheck.vue'),
+    },
+    {
+      path: '/ShiftCreate',
+      name: 'ShiftCreate',
+       component: () => import('../views/ShiftCreate.vue'),
+    },
+    {
+      path: '/ShiftCreateDaily',
+      name: 'ShiftCreateDaily',
+       component: () => import('../views/ShiftCreateDaily.vue'),
+    },
+    {
+      path: '/Attendance',
+      name: 'Attendance',
+       component: () => import('../views/Attendance.vue'),
+    },
+    {
+      path: '/UserManage',
+      name: 'UserManage',
+       component: () => import('../views/UserManage.vue'),
+    },
   ],
 })
 

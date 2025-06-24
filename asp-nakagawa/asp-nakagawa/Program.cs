@@ -23,6 +23,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.Urls.Add("http://localhost:5174");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
