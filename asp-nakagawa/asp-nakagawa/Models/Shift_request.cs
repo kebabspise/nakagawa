@@ -7,8 +7,8 @@ namespace asp_nakagawa.Models
     {
         [Key]
         public int Id { get; set; }
-        public DateTime Work_start { get; set; }
-        public DateTime Work_end { get; set; }
+        public DateTime? Work_start { get; set; }
+        public DateTime? Work_end { get; set; }
 
         public int UserId { get; set; }  // 外部キー
 
