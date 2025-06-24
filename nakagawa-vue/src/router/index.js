@@ -19,9 +19,9 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
-      path: '/Admin_Home',
-      name: 'Admin_Home',
-       component: () => import('../views/Admin_Home.vue'),
+      path: '/ShiftSubmit',
+      name: 'ShiftSubmit',
+       component: () => import('../views/ShiftSubmit.vue'),
     }
   ],
 })
