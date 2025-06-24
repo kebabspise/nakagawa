@@ -1,45 +1,225 @@
 <template>
   <div class="login-container">
-    <form>
-      <div>
+    <h2>ログイン</h2>
+    
+    <!-- エラーメッセージ表示 -->
+    <div v-if="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+    
+    <!-- 成功メッセージ表示 -->
+    <div v-if="successMessage" class="success-message">
+      {{ successMessage }}
+    </div>
+    
+    <form @submit.prevent="handleLogin">
+      <div class="form-group">
         <label for="user_id">ユーザーID:</label>
-        <input type="text" id="user_id" v-model="userId" />
+        <input 
+          type="number" 
+          id="user_id" 
+          v-model="userId" 
+          required
+          :disabled="isLoading"
+        />
       </div>
-      <div>
+      
+      <div class="form-group">
         <label for="password">パスワード:</label>
-        <input type="password" id="password" v-model="password" />
+        <input 
+          type="password" 
+          id="password" 
+          v-model="password" 
+          required
+          :disabled="isLoading"
+        />
       </div>
-      <button type="submit">ログイン</button>
+      
+      <button 
+        type="submit" 
+        :disabled="isLoading || !userId || !password"
+        class="login-button"
+      >
+        {{ isLoading ? 'ログイン中...' : 'ログイン' }}
+      </button>
     </form>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 
 const userId = ref('')
 const password = ref('')
+const isLoading = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+
+// ログイン処理
+const handleLogin = async () => {
+  // メッセージをクリア
+  errorMessage.value = ''
+  successMessage.value = ''
+  isLoading.value = true
+
+  try {
+    // ユーザーIDを数値に変換
+    const userIdInt = parseInt(userId.value)
+    
+    // ユーザーIDが数値でない場合のバリデーション
+    if (isNaN(userIdInt)) {
+      throw new Error('ユーザーIDは数値で入力してください')
+    }
+
+    // APIリクエスト
+    const response = await axios.post('http://localhost:5173/api/users', {
+      id: userIdInt,
+      pass: password.value
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000 // 10秒でタイムアウト
+    })
+
+    // ログイン成功
+    if (response.data && response.status === 200) {
+      successMessage.value = 'ログインに成功しました'
+      
+      // ログイン成功後の処理（例：ページ遷移、トークン保存など）
+      console.log('ログイン成功:', response.data)
+      
+      // 例：ローカルストレージにユーザー情報を保存
+      // localStorage.setItem('user', JSON.stringify(response.data))
+      
+      // 例：Vue Routerでページ遷移
+      // router.push('/dashboard')
+      
+      // フォームをクリア
+      userId.value = ''
+      password.value = ''
+    }
+
+  } catch (error) {
+    console.error('ログインエラー:', error)
+    
+    // エラーメッセージの設定
+    if (error.response) {
+      // サーバーからのレスポンスがある場合
+      switch (error.response.status) {
+        case 401:
+          errorMessage.value = 'ユーザーIDまたはパスワードが間違っています'
+          break
+        case 404:
+          errorMessage.value = 'ユーザーIDが見つかりません'
+          break
+        case 500:
+          errorMessage.value = 'サーバーエラーが発生しました'
+          break
+        default:
+          errorMessage.value = `エラーが発生しました (${error.response.status})`
+      }
+    } else if (error.request) {
+      // リクエストが送信されたが、レスポンスがない場合
+      errorMessage.value = 'サーバーに接続できません。ネットワークを確認してください'
+    } else {
+      // その他のエラー
+      errorMessage.value = error.message || 'ログインに失敗しました'
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
 .login-container {
-  max-width: 300px;
+  max-width: 400px;
   margin: 2rem auto;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #555;
 }
 
 input {
   width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   box-sizing: border-box;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
 }
 
-button {
+input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.login-button {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.login-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border: 1px solid #c3e6cb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 </style>
