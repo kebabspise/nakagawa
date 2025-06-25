@@ -46,6 +46,12 @@ public class Shift_confirmsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(Shift_confirm shift_confirm)
     {
+
+        if (shift_confirm.work_start.HasValue)
+        {
+            shift_confirm.work_date = shift_confirm.work_start.Value.Date;
+        }
+
         _context.Shift_confirms.Add(shift_confirm);
         await _context.SaveChangesAsync();
 
@@ -57,6 +63,11 @@ public class Shift_confirmsController : ControllerBase
     public async Task<IActionResult> Update(int id, Shift_confirm shift_confirm)
     {
         if (id != shift_confirm.id) return BadRequest();
+
+        if (shift_confirm.work_start.HasValue)
+        {
+            shift_confirm.work_date = shift_confirm.work_start.Value.Date;
+        }
 
         _context.Entry(shift_confirm).State = EntityState.Modified;
 

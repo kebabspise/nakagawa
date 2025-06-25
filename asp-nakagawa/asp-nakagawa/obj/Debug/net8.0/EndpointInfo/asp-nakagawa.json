@@ -584,6 +584,11 @@
             "format": "date-time",
             "nullable": true
           },
+          "work_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
           "user_id": {
             "type": "integer",
             "format": "int32"
@@ -609,6 +614,11 @@
           "work_end": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "work_date": {
+            "type": "string",
+            "format": "date",
             "nullable": true
           },
           "user_id": {
@@ -686,6 +696,11 @@
           "work_end": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "work_date": {
+            "type": "string",
+            "format": "date",
             "nullable": true
           },
           "user_id": {

@@ -57,6 +57,11 @@ public class Shift_requestsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(Shift_request shiftRequest)
     {
+        if (shiftRequest.work_start.HasValue)
+        {
+            shiftRequest.work_date = shiftRequest.work_start.Value.Date;
+        }
+
         _context.Shift_requests.Add(shiftRequest);
         await _context.SaveChangesAsync();
 
@@ -68,6 +73,11 @@ public class Shift_requestsController : ControllerBase
     public async Task<IActionResult> Update(int id, Shift_request shiftRequest)
     {
         if (id != shiftRequest.id) return BadRequest();
+
+        if (shiftRequest.work_start.HasValue)
+        {
+            shiftRequest.work_date = shiftRequest.work_start.Value.Date;
+        }
 
         _context.Entry(shiftRequest).State = EntityState.Modified;
 
