@@ -1,18 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace asp_nakagawa.Models
 {
     public class Work_log
     {
         [Key]
-        public int Id { get; set; }
-        public DateTime? Work_start { get; set; }
-        public DateTime? Work_end { get; set; }
+        public int id { get; set; }
 
-        public int UserId { get; set; }  // 外部キー
+        public DateTime? work_start { get; set; }
+        public DateTime? work_end { get; set; }
 
-        [ForeignKey("UserId")]
-        public User User { get; set; }
+        public int user_id { get; set; }  // 外部キー
+
+        public User User { get; set; }    // ナビゲーションプロパティ
     }
 }

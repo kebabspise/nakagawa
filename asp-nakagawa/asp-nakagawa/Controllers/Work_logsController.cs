@@ -5,47 +5,84 @@ using asp_nakagawa.Data;
 
 [Route("api/[controller]")]
 [ApiController]
-public class Work_logsController:ControllerBase
+public class Work_logsController : ControllerBase
 {
     private readonly AppDBContext _context;
 
-     public Work_logsController(AppDBContext context)
-     {
-         _context = context;
-     }
+    public Work_logsController(AppDBContext context)
+    {
+        _context = context;
+    }
 
-     [HttpGet]
-     public IActionResult GetAll()
-     {
-         return Ok(_context.Work_logs.ToList());
-     }
+ 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var logs = await _context.Work_logs.ToListAsync();
+        return Ok(logs);
+    }
 
-     [HttpDelete("{id}")]
-     public async Task<IActionResult> Delete(int id)
-     {
-         var work_log = await _context.Work_logs.FindAsync(id);
-         if (work_log == null) return NotFound();
 
-         _context.Work_logs.Remove(work_log);
-         await _context.SaveChangesAsync();
-         return NoContent();
-     }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var log = await _context.Work_logs.FindAsync(id);
+        if (log == null) return NotFound();
+        return Ok(log);
+    }
 
-     [HttpPost]
-     public async Task<IActionResult> Create(Work_log work_log)
-     {
-         _context.Work_logs.Add(work_log);
-         await _context.SaveChangesAsync();
-         return CreatedAtAction(nameof(GetAll), new { id = work_log.Id }, work_log);
-     }
+    // ユーザーごとの勤務記録取得（オプション）
+    [HttpGet("by-userid/{user_id}")]
+    public async Task<IActionResult> GetByUserId(int user_id)
+    {
+        var logs = await _context.Work_logs
+                                 .Where(w => w.user_id == user_id)
+                                 .ToListAsync();
+        return Ok(logs);
+    }
 
-     [HttpPut("{id}")]
-     public async Task<IActionResult> Update(int id, Work_log work_log)
-     {
-         if (id != work_log.Id) return BadRequest();
 
-         _context.Entry(work_log).State = EntityState.Modified;
-         await _context.SaveChangesAsync();
-         return NoContent();
-     }
+    [HttpPost]
+    public async Task<IActionResult> Create(Work_log work_log)
+    {
+        _context.Work_logs.Add(work_log);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = work_log.id }, work_log);
+    }
+
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, Work_log work_log)
+    {
+        if (id != work_log.id) return BadRequest();
+
+        _context.Entry(work_log).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.Work_logs.Any(e => e.id == id))
+                return NotFound();
+            else
+                throw;
+        }
+
+        return NoContent();
+    }
+
+ 
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var log = await _context.Work_logs.FindAsync(id);
+        if (log == null) return NotFound();
+
+        _context.Work_logs.Remove(log);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 }

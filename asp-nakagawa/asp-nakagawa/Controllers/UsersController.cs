@@ -14,16 +14,24 @@ public class UsersController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
-    public IActionResult GetAll()
-    {
-        return Ok( _context.Users.ToList());
+    [HttpGet("by-userid/{user_id}")] 
+    public async Task<IActionResult> GetByUserId(int user_id)
+    { 
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
+        if (user == null) return NotFound(); 
+        return Ok(new 
+        { 
+            user_id = user.user_id, 
+            name = user.name, 
+            admin = user.admin, 
+            wages = user.wages 
+        }); 
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpDelete("by-userid/{user_id}")]
+    public async Task<IActionResult> DeleteByUserId(int user_id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
         if (user == null) return NotFound();
 
         _context.Users.Remove(user);
@@ -36,15 +44,20 @@ public class UsersController : ControllerBase
     {
         _context.Users.Add(user);
         await _context.SaveChangesAsync();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
+        return CreatedAtAction(nameof(GetByUserId), new {  user_id = user.id }, user);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, User user)
+    [HttpPut("by-userid/{user_id}")]
+    public async Task<IActionResult> UpdateByUserId(int user_id, User updated)
     {
-        if (id != user.Id) return BadRequest();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
+        if (user == null) return NotFound();
 
-        _context.Entry(user).State = EntityState.Modified;
+        user.name = updated.name;
+        user.pass = updated.pass;
+        user.admin = updated.admin;
+        user.wages = updated.wages;
+
         await _context.SaveChangesAsync();
         return NoContent();
     }
