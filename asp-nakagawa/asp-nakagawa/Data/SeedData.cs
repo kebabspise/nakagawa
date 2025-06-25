@@ -1,5 +1,6 @@
 ﻿using asp_nakagawa.Models;
 using System;
+using System.Linq;
 
 namespace asp_nakagawa.Data
 {
@@ -9,14 +10,16 @@ namespace asp_nakagawa.Data
         {
             if (!context.Users.Any())
             {
-                context.Users.Add(new User
+                var sampleUser = new User
                 {
-                    Name = "Sample",
-                    Pass = "pass",
-                    Admin = false,
-                    Wages = 1000
-                });
-                context.SaveChanges();
+                    user_id = 0,
+                    name = "Sample",
+                    pass = "pass",
+                    admin = false,
+                    wages = 1000
+                };
+                context.Users.Add(sampleUser);
+                context.SaveChanges();  
             }
 
             var user = context.Users.First();
@@ -25,9 +28,9 @@ namespace asp_nakagawa.Data
             {
                 context.Work_logs.Add(new Work_log
                 {
-                    Work_start = DateTime.Now,
-                    Work_end = DateTime.Now,
-                    UserId = user.Id  // 外部キーを設定
+                    work_start = DateTime.Now,
+                    work_end = DateTime.Now,
+                    user_id = user.id
                 });
                 context.SaveChanges();
             }
@@ -36,9 +39,9 @@ namespace asp_nakagawa.Data
             {
                 context.Shift_requests.Add(new Shift_request
                 {
-                    Work_start = DateTime.Now,
-                    Work_end = DateTime.Now,
-                    UserId = user.Id  // 外部キーを設定
+                    work_start = DateTime.Now,
+                    work_end = DateTime.Now,
+                    user_id = user.id 
                 });
                 context.SaveChanges();
             }
@@ -47,13 +50,12 @@ namespace asp_nakagawa.Data
             {
                 context.Shift_confirms.Add(new Shift_confirm
                 {
-                    Work_start = DateTime.Now,
-                    Work_end = DateTime.Now,
-                    UserId = user.Id  // 外部キーを設定
+                    work_start = DateTime.Now,
+                    work_end = DateTime.Now,
+                    user_id = user.id 
                 });
                 context.SaveChanges();
             }
-
         }
     }
 }
