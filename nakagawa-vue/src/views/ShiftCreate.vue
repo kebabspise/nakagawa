@@ -25,8 +25,8 @@ const eventCountMap = ref({})
 
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/shifts')
-    events.value = res.data
+    const res = await axios.get('/api/shifts') //()内はURLを指定
+    events.value = res.data // 取得したシフトデータをeventsに格納
 
     // 日付ごとのイベント数をカウントする
     const countMap = {}
