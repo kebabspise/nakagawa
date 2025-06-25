@@ -45,6 +45,10 @@ public class Work_logsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(Work_log work_log)
     {
+        if (work_log.work_start.HasValue)
+        {
+            work_log.work_date = work_log.work_start.Value.Date;
+        }
         _context.Work_logs.Add(work_log);
         await _context.SaveChangesAsync();
 
@@ -56,6 +60,11 @@ public class Work_logsController : ControllerBase
     public async Task<IActionResult> Update(int id, Work_log work_log)
     {
         if (id != work_log.id) return BadRequest();
+
+        if (work_log.work_start.HasValue)
+        {
+            work_log.work_date = work_log.work_start.Value.Date;
+        }
 
         _context.Entry(work_log).State = EntityState.Modified;
 
