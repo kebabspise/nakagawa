@@ -11,6 +11,13 @@ const showTimeClockPopup = ref(false);
 function onClockRecorded(data) {
   console.log('打刻完了:', data);
 }
+function goToShiftSubmit() {
+  router.push('/ShiftSubmit')
+}
+function goToShiftCheck() {
+  router.push('/ShiftCheck')
+}
+
 </script>
 
 <template>

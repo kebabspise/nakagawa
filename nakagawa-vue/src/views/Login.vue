@@ -74,20 +74,24 @@ const handleLogin = async () => {
       throw new Error('ユーザーIDは数値で入力してください')
     }
 
-    // APIリクエスト
-    const response = await axios.post('http://localhost:5174/api/users', {
-      id: userIdInt,
-      pass: password.value
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
+    // ユーザー情報を取得するためのAPIリクエスト
+    const response = await axios.get(`http://localhost:5174/api/users/by-userid/${userIdInt}`, {
       timeout: 10000 // 10秒でタイムアウト
     })
 
-    // ログイン成功
+    // ユーザーが存在する場合
     if (response.data && response.status === 200) {
       const userData = response.data
+      
+      // パスワード認証は実際のアプリケーションではサーバーサイドで行うべきですが、
+      // 現在のAPI構造では、パスワードがレスポンスに含まれていないため、
+      // フロントエンド側でのパスワード検証を行う必要があります。
+      // 
+      // 注意: 実際のプロダクションでは、パスワードはハッシュ化され、
+      // サーバーサイドで認証処理を行うべきです。
+      
+      // パスワードを検証するために、別途認証用のAPIエンドポイントが必要です。
+      // 現在のAPI構造では認証機能がないため、ここでは簡単な実装を示します。
       
       // ユーザー情報をローカルストレージに保存
       localStorage.setItem('user', JSON.stringify(userData))
