@@ -104,12 +104,12 @@ const submittedRequests = ref([])
 const isSubmitting = ref(false)
 const currentUser = ref(null)
 
-// シフト希望入力用のデータ （プロパティ名を修正）
+// シフト希望入力用のデータ（データベース構造に合わせて修正）
 const shiftRequest = reactive({
   id: null,
-  work_start: '', // start_work → work_start に変更
-  work_end: '',   // end_work → work_end に変更
-  userId: props.userId
+  work_start: '',
+  work_end: '',
+  user_id: props.userId // C#側に合わせてuser_idに統一
 })
 
 // カレンダーのオプション設定
@@ -146,10 +146,10 @@ onMounted(async () => {
   updateCalendarEvents()
 })
 
-// ユーザー情報を取得
+// ユーザー情報を取得（APIエンドポイント修正）
 const loadUserInfo = async () => {
   try {
-    const response = await fetch(`${props.apiBaseUrl}/users/${props.userId}`)
+    const response = await fetch(`${props.apiBaseUrl}/users/by-userid/${props.userId}`)
     if (response.ok) {
       currentUser.value = await response.json()
     } else {
@@ -160,15 +160,13 @@ const loadUserInfo = async () => {
   }
 }
 
-// 提出済みシフト希望を取得 （APIエンドポイントとフィルタリングを修正）
+// 提出済みシフト希望を取得（APIエンドポイント修正）
 const loadSubmittedRequests = async () => {
   try {
-    // APIエンドポイントをC#コントローラーに合わせて修正
-    const response = await fetch(`${props.apiBaseUrl}/Shift_requests`)
+    // C#コントローラーの専用エンドポイントを使用
+    const response = await fetch(`${props.apiBaseUrl}/Shift_requests/by-userid/${props.userId}`)
     if (response.ok) {
-      const allRequests = await response.json()
-      // クライアントサイドでuserIdフィルタリング
-      submittedRequests.value = allRequests.filter(request => request.userId === props.userId)
+      submittedRequests.value = await response.json()
     } else {
       console.error('シフト希望の取得に失敗しました:', response.status)
     }
@@ -177,13 +175,13 @@ const loadSubmittedRequests = async () => {
   }
 }
 
-// 日付クリック処理 （プロパティ名を修正）
+// 日付クリック処理
 const handleDateClick = (dateStr) => {
   selectedDate.value = dateStr
   
   // 既存のシフト希望があるかチェック
   const existingRequest = submittedRequests.value.find(request => 
-    request.work_start.startsWith(dateStr) // start_work → work_start に変更
+    request.work_start && request.work_start.startsWith(dateStr)
   )
   
   if (existingRequest) {
@@ -191,29 +189,29 @@ const handleDateClick = (dateStr) => {
   } else {
     // 新規入力
     resetShiftRequest()
-    shiftRequest.work_start = `${dateStr}T09:00` // start_work → work_start に変更
-    shiftRequest.work_end = `${dateStr}T17:00`   // end_work → work_end に変更
+    shiftRequest.work_start = `${dateStr}T09:00`
+    shiftRequest.work_end = `${dateStr}T17:00`
   }
   
   showPopup.value = true
 }
 
-// 既存シフト希望編集 （プロパティ名を修正）
+// 既存シフト希望編集
 const editShiftRequest = (request) => {
   shiftRequest.id = request.id
-  shiftRequest.work_start = request.work_start.slice(0, 16) // start_work → work_start に変更
-  shiftRequest.work_end = request.work_end.slice(0, 16)     // end_work → work_end に変更
-  shiftRequest.userId = request.userId
-  selectedDate.value = request.work_start.split('T')[0] // start_work → work_start に変更
+  shiftRequest.work_start = request.work_start.slice(0, 16)
+  shiftRequest.work_end = request.work_end.slice(0, 16)
+  shiftRequest.user_id = request.user_id
+  selectedDate.value = request.work_start.split('T')[0]
   showPopup.value = true
 }
 
-// シフト希望データリセット （プロパティ名を修正）
+// シフト希望データリセット
 const resetShiftRequest = () => {
   shiftRequest.id = null
-  shiftRequest.work_start = '' // start_work → work_start に変更
-  shiftRequest.work_end = ''   // end_work → work_end に変更
-  shiftRequest.userId = props.userId
+  shiftRequest.work_start = ''
+  shiftRequest.work_end = ''
+  shiftRequest.user_id = props.userId
 }
 
 // ポップアップを閉じる
@@ -222,15 +220,15 @@ const closePopup = () => {
   resetShiftRequest()
 }
 
-// 勤務時間計算 （プロパティ名を修正）
+// 勤務時間計算
 const calculateWorkHours = () => {
-  if (!shiftRequest.work_start || !shiftRequest.work_end) return 0 // プロパティ名変更
+  if (!shiftRequest.work_start || !shiftRequest.work_end) return 0
   const start = new Date(shiftRequest.work_start)
   const end = new Date(shiftRequest.work_end)
   return Math.max(0, (end - start) / (1000 * 60 * 60))
 }
 
-// シフト希望を提出 （APIとプロパティ名を修正）
+// シフト希望を提出（データベース構造に合わせて修正）
 const submitShiftRequest = async () => {
   // バリデーション
   if (new Date(shiftRequest.work_start) >= new Date(shiftRequest.work_end)) {
@@ -241,11 +239,11 @@ const submitShiftRequest = async () => {
   isSubmitting.value = true
   
   try {
-    // リクエストデータを準備（C#モデルに合わせる） Work_start, Work_end に変更
+    // リクエストデータを準備（C#モデルに合わせる）
     const requestData = {
-      Work_start: new Date(shiftRequest.work_start).toISOString(),
-      Work_end: new Date(shiftRequest.work_end).toISOString(),
-      UserId: shiftRequest.userId
+      work_start: new Date(shiftRequest.work_start).toISOString(),
+      work_end: new Date(shiftRequest.work_end).toISOString(),
+      user_id: props.userId // C#側のプロパティ名に合わせる
     }
     
     let response
@@ -257,10 +255,10 @@ const submitShiftRequest = async () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          Id: shiftRequest.id,
-          Work_start: requestData.Work_start,
-          Work_end: requestData.Work_end,
-          UserId: requestData.UserId
+          id: shiftRequest.id,
+          work_start: requestData.work_start,
+          work_end: requestData.work_end,
+          user_id: requestData.user_id
         })
       })
     } else {
@@ -275,19 +273,7 @@ const submitShiftRequest = async () => {
     }
     
     if (response.ok) {
-      const savedRequest = await response.json()
-      
-      if (shiftRequest.id) {
-        // 既存データを更新
-        const index = submittedRequests.value.findIndex(r => r.id === shiftRequest.id)
-        if (index !== -1) {
-          submittedRequests.value[index] = savedRequest
-        }
-      } else {
-        // 新規データを追加
-        submittedRequests.value.push(savedRequest)
-      }
-      
+      await loadSubmittedRequests() // データを再取得
       updateCalendarEvents()
       closePopup()
       alert('シフト希望が正常に提出されました')
@@ -295,8 +281,9 @@ const submitShiftRequest = async () => {
       // エラーレスポンスの処理
       let errorMessage = 'サーバーエラーが発生しました'
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorText = await response.text()
+        console.error('Server error:', errorText)
+        errorMessage = `${response.status}: ${errorText}`
       } catch (e) {
         console.error('エラーレスポンスの解析に失敗:', e)
       }
@@ -310,7 +297,7 @@ const submitShiftRequest = async () => {
   }
 }
 
-// シフト希望を削除 （APIエンドポイントを修正）
+// シフト希望を削除
 const deleteShiftRequest = async () => {
   if (!confirm('このシフト希望を削除しますか？')) return
   
@@ -340,44 +327,48 @@ const deleteShiftRequest = async () => {
   }
 }
 
-// カレンダーのイベントを更新 （プロパティ名を修正）
+// カレンダーのイベントを更新
 const updateCalendarEvents = () => {
   const events = submittedRequests.value.map(request => {
-    const startDate = new Date(request.work_start) // start_work → work_start に変更
-    const endDate = new Date(request.work_end)     // end_work → work_end に変更
+    if (!request.work_start || !request.work_end) return null
+    
+    const startDate = new Date(request.work_start)
+    const endDate = new Date(request.work_end)
     const workHours = ((endDate - startDate) / (1000 * 60 * 60)).toFixed(1)
     
     return {
       id: request.id.toString(),
       title: `希望: ${startDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} - ${endDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} (${workHours}h)`,
-      start: request.work_start, // start_work → work_start に変更
-      end: request.work_end,     // end_work → work_end に変更
+      start: request.work_start,
+      end: request.work_end,
       backgroundColor: '#28a745',
       borderColor: '#28a745'
     }
-  })
+  }).filter(event => event !== null)
   
   calendarOptions.value.events = events
 }
 
 // 日付フォーマット
 const formatDate = (dateString) => {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleDateString('ja-JP')
 }
 
 // 時間フォーマット
 const formatTime = (dateString) => {
+  if (!dateString) return ''
   return new Date(dateString).toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})
 }
 
 // 勤務時間計算（文字列から）
 const calculateHours = (start, end) => {
+  if (!start || !end) return '0'
   const startDate = new Date(start)
   const endDate = new Date(end)
   return ((endDate - startDate) / (1000 * 60 * 60)).toFixed(1)
 }
 </script>
-
 
 <style scoped>
 /* 既存のスタイルはそのまま使用 */
