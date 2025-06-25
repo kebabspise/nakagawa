@@ -14,6 +14,6 @@ namespace asp_nakagawa.Models
         public DateTime? work_date { get; set; }
         public int user_id { get; set; }  // 外部キー
 
-        public User User { get; set; }    // ナビゲーションプロパティ
+        public User? User { get; set; }    // ナビゲーションプロパティ
     }
 }

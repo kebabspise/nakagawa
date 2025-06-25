@@ -13,7 +13,7 @@ namespace asp_nakagawa.Models
         [DataType(DataType.Date)]
         public DateTime? work_date { get; set; }
         public int user_id { get; set; }  // 外部キー
-        public User User { get; set; }
+        public User? User { get; set; }
 
     }
 }
