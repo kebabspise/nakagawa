@@ -15,7 +15,7 @@ namespace asp_nakagawa.Models
 
         public int user_id { get; set; }  // 外部キー
 
-        public User User { get; set; }
+        public User? User { get; set; }
 
     }
 }
