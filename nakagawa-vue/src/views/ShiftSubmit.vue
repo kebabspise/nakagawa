@@ -25,7 +25,7 @@
             <input
               type="datetime-local"
               id="start_work"
-              v-model="shiftRequest.start_work"
+              v-model="shiftRequest.work_start"
               required
               class="form-control"
             >
@@ -36,7 +36,7 @@
             <input
               type="datetime-local"
               id="end_work"
-              v-model="shiftRequest.end_work"
+              v-model="shiftRequest.work_end"
               required
               class="form-control"
             >
@@ -66,11 +66,11 @@
       <div v-else class="requests-list">
         <div v-for="request in submittedRequests" :key="request.id" class="request-item">
           <div class="request-date">
-            {{ formatDate(request.start_work) }}
+            {{ formatDate(request.work_start) }}
           </div>
           <div class="request-time">
-            {{ formatTime(request.start_work) }} - {{ formatTime(request.end_work) }}
-            ({{ calculateHours(request.start_work, request.end_work) }}時間)
+            {{ formatTime(request.work_start) }} - {{ formatTime(request.work_end) }}
+            ({{ calculateHours(request.work_start, request.work_end) }}時間)
           </div>
           <button @click="editShiftRequest(request)" class="btn btn-sm btn-outline">編集</button>
         </div>
@@ -104,11 +104,11 @@ const submittedRequests = ref([])
 const isSubmitting = ref(false)
 const currentUser = ref(null)
 
-// シフト希望入力用のデータ
+// シフト希望入力用のデータ （プロパティ名を修正）
 const shiftRequest = reactive({
   id: null,
-  start_work: '',
-  end_work: '',
+  work_start: '', // start_work → work_start に変更
+  work_end: '',   // end_work → work_end に変更
   userId: props.userId
 })
 
@@ -160,12 +160,15 @@ const loadUserInfo = async () => {
   }
 }
 
-// 提出済みシフト希望を取得
+// 提出済みシフト希望を取得 （APIエンドポイントとフィルタリングを修正）
 const loadSubmittedRequests = async () => {
   try {
-    const response = await fetch(`${props.apiBaseUrl}/shift-requests?userId=${props.userId}`)
+    // APIエンドポイントをC#コントローラーに合わせて修正
+    const response = await fetch(`${props.apiBaseUrl}/Shift_requests`)
     if (response.ok) {
-      submittedRequests.value = await response.json()
+      const allRequests = await response.json()
+      // クライアントサイドでuserIdフィルタリング
+      submittedRequests.value = allRequests.filter(request => request.userId === props.userId)
     } else {
       console.error('シフト希望の取得に失敗しました:', response.status)
     }
@@ -174,13 +177,13 @@ const loadSubmittedRequests = async () => {
   }
 }
 
-// 日付クリック処理
+// 日付クリック処理 （プロパティ名を修正）
 const handleDateClick = (dateStr) => {
   selectedDate.value = dateStr
   
   // 既存のシフト希望があるかチェック
   const existingRequest = submittedRequests.value.find(request => 
-    request.start_work.startsWith(dateStr)
+    request.work_start.startsWith(dateStr) // start_work → work_start に変更
   )
   
   if (existingRequest) {
@@ -188,28 +191,28 @@ const handleDateClick = (dateStr) => {
   } else {
     // 新規入力
     resetShiftRequest()
-    shiftRequest.start_work = `${dateStr}T09:00`
-    shiftRequest.end_work = `${dateStr}T17:00`
+    shiftRequest.work_start = `${dateStr}T09:00` // start_work → work_start に変更
+    shiftRequest.work_end = `${dateStr}T17:00`   // end_work → work_end に変更
   }
   
   showPopup.value = true
 }
 
-// 既存シフト希望編集
+// 既存シフト希望編集 （プロパティ名を修正）
 const editShiftRequest = (request) => {
   shiftRequest.id = request.id
-  shiftRequest.start_work = request.start_work.slice(0, 16) // datetime-local形式に変換
-  shiftRequest.end_work = request.end_work.slice(0, 16)
+  shiftRequest.work_start = request.work_start.slice(0, 16) // start_work → work_start に変更
+  shiftRequest.work_end = request.work_end.slice(0, 16)     // end_work → work_end に変更
   shiftRequest.userId = request.userId
-  selectedDate.value = request.start_work.split('T')[0]
+  selectedDate.value = request.work_start.split('T')[0] // start_work → work_start に変更
   showPopup.value = true
 }
 
-// シフト希望データリセット
+// シフト希望データリセット （プロパティ名を修正）
 const resetShiftRequest = () => {
   shiftRequest.id = null
-  shiftRequest.start_work = ''
-  shiftRequest.end_work = ''
+  shiftRequest.work_start = '' // start_work → work_start に変更
+  shiftRequest.work_end = ''   // end_work → work_end に変更
   shiftRequest.userId = props.userId
 }
 
@@ -219,18 +222,18 @@ const closePopup = () => {
   resetShiftRequest()
 }
 
-// 勤務時間計算
+// 勤務時間計算 （プロパティ名を修正）
 const calculateWorkHours = () => {
-  if (!shiftRequest.start_work || !shiftRequest.end_work) return 0
-  const start = new Date(shiftRequest.start_work)
-  const end = new Date(shiftRequest.end_work)
+  if (!shiftRequest.work_start || !shiftRequest.work_end) return 0 // プロパティ名変更
+  const start = new Date(shiftRequest.work_start)
+  const end = new Date(shiftRequest.work_end)
   return Math.max(0, (end - start) / (1000 * 60 * 60))
 }
 
-// シフト希望を提出
+// シフト希望を提出 （APIとプロパティ名を修正）
 const submitShiftRequest = async () => {
   // バリデーション
-  if (new Date(shiftRequest.start_work) >= new Date(shiftRequest.end_work)) {
+  if (new Date(shiftRequest.work_start) >= new Date(shiftRequest.work_end)) {
     alert('終了時間は開始時間より後に設定してください')
     return
   }
@@ -238,31 +241,31 @@ const submitShiftRequest = async () => {
   isSubmitting.value = true
   
   try {
-    // リクエストデータを準備（DBスキーマに合わせる）
+    // リクエストデータを準備（C#モデルに合わせる） Work_start, Work_end に変更
     const requestData = {
-      start_work: new Date(shiftRequest.start_work).toISOString(),
-      end_work: new Date(shiftRequest.end_work).toISOString(),
-      userId: shiftRequest.userId
+      Work_start: new Date(shiftRequest.work_start).toISOString(),
+      Work_end: new Date(shiftRequest.work_end).toISOString(),
+      UserId: shiftRequest.userId
     }
     
     let response
     if (shiftRequest.id) {
       // 更新
-      response = await fetch(`${props.apiBaseUrl}/shift-requests/${shiftRequest.id}`, {
+      response = await fetch(`${props.apiBaseUrl}/Shift_requests/${shiftRequest.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          id: shiftRequest.id,
-          start_work: requestData.start_work,
-          end_work: requestData.end_work,
-          userId: requestData.userId
+          Id: shiftRequest.id,
+          Work_start: requestData.Work_start,
+          Work_end: requestData.Work_end,
+          UserId: requestData.UserId
         })
       })
     } else {
       // 新規作成
-      response = await fetch(`${props.apiBaseUrl}/shift-requests`, {
+      response = await fetch(`${props.apiBaseUrl}/Shift_requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -307,12 +310,12 @@ const submitShiftRequest = async () => {
   }
 }
 
-// シフト希望を削除
+// シフト希望を削除 （APIエンドポイントを修正）
 const deleteShiftRequest = async () => {
   if (!confirm('このシフト希望を削除しますか？')) return
   
   try {
-    const response = await fetch(`${props.apiBaseUrl}/shift-requests/${shiftRequest.id}`, {
+    const response = await fetch(`${props.apiBaseUrl}/Shift_requests/${shiftRequest.id}`, {
       method: 'DELETE'
     })
     
@@ -337,18 +340,18 @@ const deleteShiftRequest = async () => {
   }
 }
 
-// カレンダーのイベントを更新
+// カレンダーのイベントを更新 （プロパティ名を修正）
 const updateCalendarEvents = () => {
   const events = submittedRequests.value.map(request => {
-    const startDate = new Date(request.start_work)
-    const endDate = new Date(request.end_work)
+    const startDate = new Date(request.work_start) // start_work → work_start に変更
+    const endDate = new Date(request.work_end)     // end_work → work_end に変更
     const workHours = ((endDate - startDate) / (1000 * 60 * 60)).toFixed(1)
     
     return {
       id: request.id.toString(),
       title: `希望: ${startDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} - ${endDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} (${workHours}h)`,
-      start: request.start_work,
-      end: request.end_work,
+      start: request.work_start, // start_work → work_start に変更
+      end: request.work_end,     // end_work → work_end に変更
       backgroundColor: '#28a745',
       borderColor: '#28a745'
     }
@@ -375,7 +378,9 @@ const calculateHours = (start, end) => {
 }
 </script>
 
+
 <style scoped>
+/* 既存のスタイルはそのまま使用 */
 .shift-submit-container {
   padding: 20px;
   max-width: 1200px;
