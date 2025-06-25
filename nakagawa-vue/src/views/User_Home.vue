@@ -1,53 +1,33 @@
 <script setup>
-import axios from 'axios';
-import {ref, onMounted} from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import TimeClockPopup from '../components/TimeClock.vue';
+
 const router = useRouter();
-
-// titleとtitle2の定義
 const title = ref('一般ユーザーのホーム画面です');
-const title2 = ref('サブタイトルです。')
+const title2 = ref('サブタイトルです。');
+const showTimeClockPopup = ref(false);
 
-
-function goToAbout()
-    {
-    router.push('/about')
-    }//Aboutページへ移動する記述
-
-// function goToAbout()
-    // {
-    // router.push('/about')
-    // }//出退勤記録ページへ移動する記述
-
-// function goToAbout()
-    // {
-    // router.push('/about')
-    // }//シフト提出ページへ移動する記述
-
-// function goToAbout()
-    // {
-    // router.push('/about')
-    // }//シフト確認ページへ移動する記述
-
+function onClockRecorded(data) {
+  console.log('打刻完了:', data);
+}
 </script>
-
-
 
 <template>
   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh;">
     <h1>{{ title }}</h1>
     <h2>{{ title2 }}</h2>
 
-    <button @click="goToAbout" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">Aboutページへ移動</button>
-    <button @click="goToTimeCard" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">入店・退店</button>
-    <button @click="goToShiftSubmit" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">シフト提出</button>
-    <button @click="goToShiftCheck" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">シフト確認</button>
+    <button @click="goToAbout">Aboutページへ移動</button>
+    <button @click="showTimeClockPopup = true">打刻</button>
+
+    <TimeClockPopup 
+      :show="showTimeClockPopup"
+      @close="showTimeClockPopup = false"
+      @clock-recorded="onClockRecorded"
+    />
+
+    <button @click="goToShiftSubmit">シフト提出</button>
+    <button @click="goToShiftCheck">シフト確認</button>
   </div>
 </template>
-
-
-
-
-
-
-
