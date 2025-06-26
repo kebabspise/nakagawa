@@ -1,53 +1,53 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\data\\nakagawa\\asp-nakagawa\\",
+  "WorkspaceRootPath": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\shift_confirm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\shift_confirm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\shift_request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\shift_request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\work_log.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\work_log.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\work_log.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\shift_confirmscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\shift_confirmscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\shift_requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\shift_requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\work_logscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\work_logscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\user.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\shift_request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\shift_request.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\models\\shift_confirm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\models\\shift_confirm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\data\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\shift_requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\shift_requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\shift_confirmscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\shift_confirmscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\controllers\\work_logscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\controllers\\work_logscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|c:\\users\\a0006631\\desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{5C5EB806-4E6E-4661-A751-2CF84E63DBD8}|asp-nakagawa\\asp-nakagawa.csproj|solutionrelative:asp-nakagawa\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
@@ -58,148 +58,158 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Work_logsController.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Work_logsController.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\Work_logsController.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Work_logsController.cs",
-              "RelativeToolTip": "asp-nakagawa\\Controllers\\Work_logsController.cs",
-              "ViewState": "AgIAACUAAAAAAAAAAAAUwD4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:23:06.469Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Shift_requestsController.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_requestsController.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\Shift_requestsController.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_requestsController.cs",
-              "RelativeToolTip": "asp-nakagawa\\Controllers\\Shift_requestsController.cs",
-              "ViewState": "AgIAAC0AAAAAAAAAAAAzwE8AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:45:12.877Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Shift_request.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_request.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Shift_request.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_request.cs",
-              "RelativeToolTip": "asp-nakagawa\\Models\\Shift_request.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAUAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:32:04.917Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "AppDBContext.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\AppDBContext.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Data\\AppDBContext.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\AppDBContext.cs",
-              "RelativeToolTip": "asp-nakagawa\\Data\\AppDBContext.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAwwC4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T06:27:07.94Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Work_log.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Work_log.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Work_log.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Work_log.cs",
-              "RelativeToolTip": "asp-nakagawa\\Models\\Work_log.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAUAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:25:46.314Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
               "Title": "User.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\User.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\User.cs",
               "RelativeDocumentMoniker": "asp-nakagawa\\Models\\User.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\User.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\User.cs",
               "RelativeToolTip": "asp-nakagawa\\Models\\User.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-23T02:18:56.497Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Shift_confirm.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_confirm.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Shift_confirm.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_confirm.cs",
-              "RelativeToolTip": "asp-nakagawa\\Models\\Shift_confirm.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAUAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "Work_log.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Work_log.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Work_log.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Work_log.cs",
+              "RelativeToolTip": "asp-nakagawa\\Models\\Work_log.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:32:51.863Z"
+              "WhenOpened": "2025-06-23T02:25:46.314Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Shift_confirm.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_confirm.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Shift_confirm.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_confirm.cs",
+              "RelativeToolTip": "asp-nakagawa\\Models\\Shift_confirm.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T02:32:51.863Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\UsersController.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "asp-nakagawa\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABIAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T02:46:12.388Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Shift_request.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_request.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Models\\Shift_request.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Models\\Shift_request.cs",
+              "RelativeToolTip": "asp-nakagawa\\Models\\Shift_request.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T02:32:04.917Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Shift_requestsController.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_requestsController.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\Shift_requestsController.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_requestsController.cs",
+              "RelativeToolTip": "asp-nakagawa\\Controllers\\Shift_requestsController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAGYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T05:45:12.877Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Work_logsController.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Work_logsController.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\Work_logsController.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Work_logsController.cs",
+              "RelativeToolTip": "asp-nakagawa\\Controllers\\Work_logsController.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAUwD4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T05:23:06.469Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AppDBContext.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\AppDBContext.cs",
+              "RelativeDocumentMoniker": "asp-nakagawa\\Data\\AppDBContext.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\AppDBContext.cs",
+              "RelativeToolTip": "asp-nakagawa\\Data\\AppDBContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-23T06:27:07.94Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 9,
               "Title": "SeedData.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\SeedData.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\SeedData.cs",
               "RelativeDocumentMoniker": "asp-nakagawa\\Data\\SeedData.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\SeedData.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\SeedData.cs",
               "RelativeToolTip": "asp-nakagawa\\Data\\SeedData.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T06:32:45.386Z"
+              "WhenOpened": "2025-06-23T06:32:45.386Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "Shift_confirmsController.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
               "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
               "RelativeToolTip": "asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAqwEUAAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEUAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:51:54.042Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "UsersController.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\UsersController.cs",
-              "RelativeDocumentMoniker": "asp-nakagawa\\Controllers\\UsersController.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Controllers\\UsersController.cs",
-              "RelativeToolTip": "asp-nakagawa\\Controllers\\UsersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:46:12.388Z"
+              "WhenOpened": "2025-06-23T05:51:54.042Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 10,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Program.cs",
               "RelativeDocumentMoniker": "asp-nakagawa\\Program.cs",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Program.cs",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Program.cs",
               "RelativeToolTip": "asp-nakagawa\\Program.cs",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAAB4AAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T06:59:39.431Z"
+              "WhenOpened": "2025-06-23T06:59:39.431Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 11,
               "Title": "launchSettings.json",
-              "DocumentMoniker": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Properties\\launchSettings.json",
+              "DocumentMoniker": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "asp-nakagawa\\Properties\\launchSettings.json",
-              "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Properties\\launchSettings.json",
               "RelativeToolTip": "asp-nakagawa\\Properties\\launchSettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
