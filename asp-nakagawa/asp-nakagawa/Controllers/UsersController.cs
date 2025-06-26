@@ -18,14 +18,8 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetByUserId(int user_id)
     { 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
-        if (user == null) return NotFound(); 
-        return Ok(new 
-        { 
-            user_id = user.user_id, 
-            name = user.name, 
-            admin = user.admin, 
-            wages = user.wages 
-        }); 
+        if (user == null) return NotFound();
+        return Ok(user);
     }
 
     [HttpDelete("by-userid/{user_id}")]

@@ -84,17 +84,45 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import { useUser } from '../components/useUser'
 
-// Props（親コンポーネントから渡される）
+// Props（APIベースURLのみ）
 const props = defineProps({
-  userId: {
-    type: Number,
-    required: true
-  },
   apiBaseUrl: {
     type: String,
     default: 'http://localhost:5174/api'
   }
+})
+
+// ユーザー情報の取得
+const { currentUser, userId } = useUser()
+const userDbId = ref(null) // DBのUser.idを保持
+
+
+// onMountedでDBのUser.idを取得
+onMounted(async () => {
+  if (!userId.value) {
+    alert('ユーザー情報が取得できません。ログインし直してください。')
+    return
+  }
+
+  // DBのUser.idを取得（user_id=社員番号から）
+  try {
+    const res = await fetch(`${props.apiBaseUrl}/Users/by-userid/${userId.value}`)
+    if (res.ok) {
+      const user = await res.json()
+      userDbId.value = user.id // ここがDBのUser.id
+    } else {
+      throw new Error(`ステータス: ${res.status}`)
+    }
+  } catch (err) {
+    console.error('User.idの取得に失敗:', err)
+    alert('ユーザー情報の取得に失敗しました')
+    return
+  }
+
+  await loadSubmittedRequests()
+  updateCalendarEvents()
 })
 
 // リアクティブデータ
@@ -102,14 +130,13 @@ const showPopup = ref(false)
 const selectedDate = ref('')
 const submittedRequests = ref([])
 const isSubmitting = ref(false)
-const currentUser = ref(null)
 
-// シフト希望入力用のデータ（データベース構造に合わせて修正）
+// シフト希望入力用のデータ
 const shiftRequest = reactive({
   id: null,
   work_start: '',
   work_end: '',
-  user_id: props.userId // C#側に合わせてuser_idに統一
+  user_id: null
 })
 
 // カレンダーのオプション設定
@@ -141,30 +168,22 @@ const calendarOptions = ref({
 
 // コンポーネントマウント時の処理
 onMounted(async () => {
-  await loadUserInfo()
+  // ユーザー情報が取得できない場合の処理
+  if (!userId.value) {
+    alert('ユーザー情報が取得できません。ログインし直してください。')
+    return
+  }
+  
   await loadSubmittedRequests()
   updateCalendarEvents()
 })
 
-// ユーザー情報を取得（APIエンドポイント修正）
-const loadUserInfo = async () => {
-  try {
-    const response = await fetch(`${props.apiBaseUrl}/users/by-userid/${props.userId}`)
-    if (response.ok) {
-      currentUser.value = await response.json()
-    } else {
-      console.error('ユーザー情報の取得に失敗しました:', response.status)
-    }
-  } catch (error) {
-    console.error('ユーザー情報の取得に失敗しました:', error)
-  }
-}
-
-// 提出済みシフト希望を取得（APIエンドポイント修正）
+// 提出済みシフト希望を取得（userDbIdを使用）
 const loadSubmittedRequests = async () => {
+  if (!userDbId.value) return
+
   try {
-    // C#コントローラーの専用エンドポイントを使用
-    const response = await fetch(`${props.apiBaseUrl}/Shift_requests/by-userid/${props.userId}`)
+    const response = await fetch(`${props.apiBaseUrl}/Shift_requests/by-userid/${userDbId.value}`)
     if (response.ok) {
       submittedRequests.value = await response.json()
     } else {
@@ -177,6 +196,11 @@ const loadSubmittedRequests = async () => {
 
 // 日付クリック処理
 const handleDateClick = (dateStr) => {
+  if (!userId.value) {
+    alert('ユーザー情報が取得できません。')
+    return
+  }
+  
   selectedDate.value = dateStr
   
   // 既存のシフト希望があるかチェック
@@ -206,12 +230,12 @@ const editShiftRequest = (request) => {
   showPopup.value = true
 }
 
-// シフト希望データリセット
+// 新規入力用reset（userDbId使用）
 const resetShiftRequest = () => {
   shiftRequest.id = null
   shiftRequest.work_start = ''
   shiftRequest.work_end = ''
-  shiftRequest.user_id = props.userId
+  shiftRequest.user_id = userDbId.value
 }
 
 // ポップアップを閉じる
@@ -228,69 +252,55 @@ const calculateWorkHours = () => {
   return Math.max(0, (end - start) / (1000 * 60 * 60))
 }
 
-// シフト希望を提出（データベース構造に合わせて修正）
+// submitShiftRequest: 登録・更新時にuserDbIdを送る
 const submitShiftRequest = async () => {
-  // バリデーション
+
+  if (!userDbId.value) {
+    alert('ユーザー情報が取得できません。')
+    return
+  }
+
   if (new Date(shiftRequest.work_start) >= new Date(shiftRequest.work_end)) {
     alert('終了時間は開始時間より後に設定してください')
     return
   }
-  
+
   isSubmitting.value = true
-  
+
   try {
-    // リクエストデータを準備（C#モデルに合わせる）
     const requestData = {
       work_start: new Date(shiftRequest.work_start).toISOString(),
       work_end: new Date(shiftRequest.work_end).toISOString(),
-      user_id: props.userId // C#側のプロパティ名に合わせる
+      user_id: userDbId.value // ←ここが重要
     }
-    
+
     let response
     if (shiftRequest.id) {
-      // 更新
       response = await fetch(`${props.apiBaseUrl}/Shift_requests/${shiftRequest.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          id: shiftRequest.id,
-          work_start: requestData.work_start,
-          work_end: requestData.work_end,
-          user_id: requestData.user_id
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: shiftRequest.id, ...requestData })
       })
     } else {
-      // 新規作成
       response = await fetch(`${props.apiBaseUrl}/Shift_requests`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)
       })
     }
-    
+
     if (response.ok) {
-      await loadSubmittedRequests() // データを再取得
+      await loadSubmittedRequests()
       updateCalendarEvents()
       closePopup()
       alert('シフト希望が正常に提出されました')
     } else {
-      // エラーレスポンスの処理
-      let errorMessage = 'サーバーエラーが発生しました'
-      try {
-        const errorText = await response.text()
-        console.error('Server error:', errorText)
-        errorMessage = `${response.status}: ${errorText}`
-      } catch (e) {
-        console.error('エラーレスポンスの解析に失敗:', e)
-      }
-      alert(`エラーが発生しました: ${errorMessage}`)
+      const errorText = await response.text()
+      console.error('Server error:', errorText)
+      alert(`エラーが発生しました: ${response.status}: ${errorText}`)
     }
   } catch (error) {
-    console.error('シフト希望の提出に失敗しました:', error)
+    console.error('送信エラー:', error)
     alert('通信エラーが発生しました')
   } finally {
     isSubmitting.value = false
@@ -371,7 +381,6 @@ const calculateHours = (start, end) => {
 </script>
 
 <style scoped>
-/* 既存のスタイルはそのまま使用 */
 .shift-submit-container {
   padding: 20px;
   max-width: 1200px;

@@ -3689,23 +3689,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\A0006630\\.nuget\\packages\\": {},
+    "C:\\Users\\A0006631\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\asp-nakagawa.csproj",
+      "projectUniqueName": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\asp-nakagawa.csproj",
       "projectName": "asp-nakagawa",
-      "projectPath": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\asp-nakagawa.csproj",
-      "packagesPath": "C:\\Users\\A0006630\\.nuget\\packages\\",
-      "outputPath": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\obj\\",
+      "projectPath": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\asp-nakagawa.csproj",
+      "packagesPath": "C:\\Users\\A0006631\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\A0006631\\Desktop\\nakagawa\\asp-nakagawa\\asp-nakagawa\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\A0006630\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\A0006631\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3732,7 +3732,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -3780,7 +3780,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
