@@ -29,8 +29,8 @@ function onClockRecorded(data) {
 function goToShiftCreate() {
   router.push('/ShiftCreate')
 }
-function goToShiftSubmit() {
-  router.push('/ShiftSubmit')
+function goToAttendance() {
+  router.push('/Attendance')
 }
 function goToUserManage() {
   router.push('/UserManage')
@@ -59,7 +59,7 @@ function goToUserManage() {
 
     <!-- 管理メニュー -->
     <button @click="goToShiftCreate" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">シフト作成</button>
-    <button @click="goToShiftSubmit" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">勤怠管理</button>
+    <button @click="goToAttendance" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">勤怠管理</button>
     <button @click="goToUserManage" style="margin-top: 32px; padding: 12px 32px; font-size: 1.2rem;">ユーザー管理</button>
   </div>
 </template>
