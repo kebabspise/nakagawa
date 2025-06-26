@@ -98,6 +98,30 @@ const props = defineProps({
 const { currentUser, userId } = useUser()
 const userDbId = ref(null) // DBのUser.idを保持
 
+// UTC時刻をJSTに変換する関数
+const utcToJst = (utcString) => {
+  if (!utcString) return ''
+  const utcDate = new Date(utcString)
+  // JSTはUTC+9時間
+  const jstDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000))
+  return jstDate.toISOString().slice(0, 16) // YYYY-MM-DDTHH:mm形式
+}
+
+// JST時刻をUTCに変換する関数
+const jstToUtc = (jstString) => {
+  if (!jstString) return ''
+  const jstDate = new Date(jstString)
+  // JSTからUTCに変換（9時間戻す）
+  const utcDate = new Date(jstDate.getTime() - (9 * 60 * 60 * 1000))
+  return utcDate.toISOString()
+}
+
+// UTC時刻からJSTのDateオブジェクトを作成
+const utcToJstDate = (utcString) => {
+  if (!utcString) return null
+  const utcDate = new Date(utcString)
+  return new Date(utcDate.getTime() + (9 * 60 * 60 * 1000))
+}
 
 // onMountedでDBのUser.idを取得
 onMounted(async () => {
@@ -166,18 +190,6 @@ const calendarOptions = ref({
   events: []
 })
 
-// コンポーネントマウント時の処理
-onMounted(async () => {
-  // ユーザー情報が取得できない場合の処理
-  if (!userId.value) {
-    alert('ユーザー情報が取得できません。ログインし直してください。')
-    return
-  }
-  
-  await loadSubmittedRequests()
-  updateCalendarEvents()
-})
-
 // 提出済みシフト希望を取得（userDbIdを使用）
 const loadSubmittedRequests = async () => {
   if (!userDbId.value) return
@@ -203,10 +215,13 @@ const handleDateClick = (dateStr) => {
   
   selectedDate.value = dateStr
   
-  // 既存のシフト希望があるかチェック
-  const existingRequest = submittedRequests.value.find(request => 
-    request.work_start && request.work_start.startsWith(dateStr)
-  )
+  // 既存のシフト希望があるかチェック（JST基準で日付比較）
+  const existingRequest = submittedRequests.value.find(request => {
+    if (!request.work_start) return false
+    const jstDate = utcToJstDate(request.work_start)
+    const requestDateStr = jstDate.toISOString().split('T')[0]
+    return requestDateStr === dateStr
+  })
   
   if (existingRequest) {
     editShiftRequest(existingRequest)
@@ -220,13 +235,16 @@ const handleDateClick = (dateStr) => {
   showPopup.value = true
 }
 
-// 既存シフト希望編集
+// 既存シフト希望編集（UTC → JST変換）
 const editShiftRequest = (request) => {
   shiftRequest.id = request.id
-  shiftRequest.work_start = request.work_start.slice(0, 16)
-  shiftRequest.work_end = request.work_end.slice(0, 16)
+  shiftRequest.work_start = utcToJst(request.work_start)
+  shiftRequest.work_end = utcToJst(request.work_end)
   shiftRequest.user_id = request.user_id
-  selectedDate.value = request.work_start.split('T')[0]
+  
+  // selectedDateもJST基準で設定
+  const jstDate = utcToJstDate(request.work_start)
+  selectedDate.value = jstDate.toISOString().split('T')[0]
   showPopup.value = true
 }
 
@@ -244,7 +262,7 @@ const closePopup = () => {
   resetShiftRequest()
 }
 
-// 勤務時間計算
+// 勤務時間計算（JST基準）
 const calculateWorkHours = () => {
   if (!shiftRequest.work_start || !shiftRequest.work_end) return 0
   const start = new Date(shiftRequest.work_start)
@@ -252,9 +270,8 @@ const calculateWorkHours = () => {
   return Math.max(0, (end - start) / (1000 * 60 * 60))
 }
 
-// submitShiftRequest: 登録・更新時にuserDbIdを送る
+// submitShiftRequest
 const submitShiftRequest = async () => {
-
   if (!userDbId.value) {
     alert('ユーザー情報が取得できません。')
     return
@@ -269,9 +286,9 @@ const submitShiftRequest = async () => {
 
   try {
     const requestData = {
-      work_start: new Date(shiftRequest.work_start).toISOString(),
-      work_end: new Date(shiftRequest.work_end).toISOString(),
-      user_id: userDbId.value // ←ここが重要
+      work_start: shiftRequest.work_start, // JST → UTC変換 out
+      work_end: shiftRequest.work_end, // JST → UTC変換 out
+      user_id: userDbId.value
     }
 
     let response
@@ -337,7 +354,7 @@ const deleteShiftRequest = async () => {
   }
 }
 
-// カレンダーのイベントを更新
+// カレンダーのイベントを更新（JST表示）
 const updateCalendarEvents = () => {
   const events = submittedRequests.value.map(request => {
     if (!request.work_start || !request.work_end) return null
@@ -349,8 +366,8 @@ const updateCalendarEvents = () => {
     return {
       id: request.id.toString(),
       title: `希望: ${startDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} - ${endDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})} (${workHours}h)`,
-      start: request.work_start,
-      end: request.work_end,
+      start: startDate, // FullCalendarはUTCで管理するが、表示時にJSTで表示される ???
+      end: endDate,
       backgroundColor: '#28a745',
       borderColor: '#28a745'
     }
@@ -359,23 +376,26 @@ const updateCalendarEvents = () => {
   calendarOptions.value.events = events
 }
 
-// 日付フォーマット
+
+// 日付フォーマット（JST表示）
 const formatDate = (dateString) => {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('ja-JP')
+  const jstDate = new Date(dateString)
+  return jstDate.toLocaleDateString('ja-JP')
 }
 
-// 時間フォーマット
+// 時間フォーマット（JST表示）
 const formatTime = (dateString) => {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})
+  const jstDate = new Date(dateString)
+  return jstDate.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'})
 }
 
-// 勤務時間計算（文字列から）
+// 勤務時間計算（文字列から、JST基準）
 const calculateHours = (start, end) => {
   if (!start || !end) return '0'
-  const startDate = new Date(start)
-  const endDate = new Date(end)
+  const startDate = utcToJstDate(start)
+  const endDate = utcToJstDate(end)
   return ((endDate - startDate) / (1000 * 60 * 60)).toFixed(1)
 }
 </script>
