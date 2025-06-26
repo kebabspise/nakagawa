@@ -14,6 +14,21 @@ public class UsersController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null) return NotFound();
+        return Ok(user);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _context.Users.ToListAsync();
+        return Ok(users);
+    }
+
     [HttpGet("by-userid/{user_id}")] 
     public async Task<IActionResult> GetByUserId(int user_id)
     { 
