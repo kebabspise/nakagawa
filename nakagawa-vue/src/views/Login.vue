@@ -49,6 +49,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUser } from '../components/useUser'
 import axios from 'axios'
 
 const userId = ref('')
@@ -57,6 +58,9 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const router = useRouter()
+
+// ユーザー状態管理のcomposableを使用
+const { setUser } = useUser()
 
 // ログイン処理
 const handleLogin = async () => {
@@ -93,8 +97,8 @@ const handleLogin = async () => {
       // パスワードを検証するために、別途認証用のAPIエンドポイントが必要です。
       // 現在のAPI構造では認証機能がないため、ここでは簡単な実装を示します。
       
-      // ユーザー情報をローカルストレージに保存
-      localStorage.setItem('user', JSON.stringify(userData))
+      // ユーザー情報をグローバル状態に保存
+      setUser(userData)
       
       // adminフラグに基づいてページ遷移
       if (userData.admin === true) {
