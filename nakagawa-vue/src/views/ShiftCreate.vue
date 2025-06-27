@@ -112,6 +112,8 @@ import axios from 'axios'
 
 const shiftRequests = ref([])
 const shiftConfirms = ref([])
+const confirmedRequestIds = ref([]) // 確定済み申請IDのリスト
+const shiftConfirmToRequestMap = ref({}) // 確定シフトIDと申請IDの対応マップ
 const eventCountMap = ref({})
 const isEditModalOpen = ref(false)
 const isCreateModalOpen = ref(false)
@@ -140,7 +142,12 @@ const displayEvents = computed(() => {
   const events = []
   
   if (showRequests.value) {
-    events.push(...shiftRequests.value.map(shift => ({
+    // 確定済みでない申請のみ表示
+    const visibleRequests = shiftRequests.value.filter(shift => 
+      !confirmedRequestIds.value.includes(shift.id)
+    )
+    
+    events.push(...visibleRequests.map(shift => ({
       id: `req_${shift.id}`,
       title: `【申請】${getUserName(shift.user_id)} (${formatJstDateTime(shift.work_start)} - ${formatJstDateTime(shift.work_end)})`,
       start: shift.work_start,
@@ -258,7 +265,12 @@ async function fetchShiftConfirms() {
 // イベント数のマップを更新
 function updateEventCountMap() {
   const countMap = {}
-  const allShifts = [...shiftRequests.value, ...shiftConfirms.value]
+  
+  // 表示される申請のみをカウント
+  const visibleRequests = shiftRequests.value.filter(shift => 
+    !confirmedRequestIds.value.includes(shift.id)
+  )
+  const allShifts = [...visibleRequests, ...shiftConfirms.value]
   
   allShifts.forEach(shift => {
     if (shift.work_start) {
@@ -351,40 +363,74 @@ async function deleteShift() {
   
   if (!confirm('本当に削除しますか？')) return
   try {
-    await axios.delete(`http://localhost:5174/api/Shift_confirms/${editShift.id}`)
+    const confirmId = editShift.id
+    
+    // 削除前に対応する申請IDを取得
+    const correspondingRequestId = shiftConfirmToRequestMap.value[confirmId]
+    
+    await axios.delete(`http://localhost:5174/api/Shift_confirms/${confirmId}`)
+    
+    // 対応する申請がある場合は再表示
+    if (correspondingRequestId) {
+      const index = confirmedRequestIds.value.indexOf(correspondingRequestId)
+      if (index > -1) {
+        confirmedRequestIds.value.splice(index, 1)
+      }
+      // マップからも削除
+      delete shiftConfirmToRequestMap.value[confirmId]
+    }
+    
     isEditModalOpen.value = false
     await fetchShiftConfirms()
-    alert('シフトが削除されました')
+    updateEventCountMap()
+    
+    if (correspondingRequestId) {
+      alert('シフトが削除されました')
+    } else {
+      alert('シフトが削除されました')
+    }
   } catch (e) {
     console.error('削除エラー:', e)
     alert('削除に失敗しました')
   }
 }
 
-// シフトを確定する（申請から確定へ移行）
+// シフトを確定する（申請から確定へ移行し、申請を非表示にする）
 async function confirmShift() {
   if (!editShift.isRequest) return
   
   if (!confirm('このシフトを確定しますか？')) return
+  
   try {
     const workStart = editShift.start
     const workEnd = editShift.end
+    const requestId = editShift.id
     
-    // shift_confirmsに追加
-    await axios.post('http://localhost:5174/api/Shift_confirms', {
+    // 1. shift_confirmsに追加
+    const response = await axios.post('http://localhost:5174/api/Shift_confirms', {
       user_id: editShift.user_id,
       work_start: workStart,
       work_end: workEnd,
       work_date: workStart ? new Date(workStart).toISOString().slice(0, 10) : null
     })
     
+    // 2. 確定済み申請IDリストに追加（データは削除しない）
+    confirmedRequestIds.value.push(requestId)
+    
+    // 3. 確定シフトIDと申請IDの対応を記録
+    const newConfirmId = response.data.id || response.data
+    if (newConfirmId) {
+      shiftConfirmToRequestMap.value[newConfirmId] = requestId
+    }
+    
     isEditModalOpen.value = false
-    await fetchShiftRequests()
     await fetchShiftConfirms()
+    updateEventCountMap() // イベント数マップを更新
     alert('シフトが確定されました')
   } catch (e) {
     console.error('確定エラー:', e)
     alert('確定に失敗しました')
+    await fetchShiftConfirms()
   }
 }
 
