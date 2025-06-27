@@ -1,208 +1,527 @@
 <template>
-  <div class="attendance-summary">
-    <h3>従業員別勤務時間一覧</h3>
-
-    <div class="filters">
-      <label>
-        名前:
-        <input v-model="filterName" placeholder="名前でフィルター" />
-      </label>
-      <label>
-        並び替え:
-        <select v-model="sortKey">
-          <option value="user_id">ID</option>
-          <option value="user.name">名前</option>
-          <option value="work_start">開始時刻</option>
-          <option value="work_end">終了時刻</option>
-        </select>
-      </label>
-      <label>
-        昇順:
-        <input type="checkbox" v-model="sortAsc" />
-      </label>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">勤怠記録管理システム</h1>
+      <div class="month-selector">
+        <label>表示月:</label>
+        <input type="month" v-model="selectedMonth" @change="fetchData">
+        <button class="refresh-btn" @click="fetchData">更新</button>
+      </div>
     </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>名前</th>
-          <th>勤務日</th>
-          <th>開始時刻</th>
-          <th>終了時刻</th>
-          <th>勤務時間 (h)</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="log in filteredLogs" :key="log.id">
-          <td>{{ log.user_id }}</td>
-          <td>{{ log.user?.name || '不明' }}</td>
-          <td>{{ formatDate(log.work_start) }}</td>
-          <td><input type="datetime-local" v-model="log.work_start" /></td>
-          <td><input type="datetime-local" v-model="log.work_end" /></td>
-          <td>{{ calculateHours(log.work_start, log.work_end) }}</td>
-          <td>
-            <button @click="updateLog(log)">更新</button>
-            <button @click="deleteLog(log.id)">削除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    
+    <div v-if="loading" class="loading">
+      データを読み込んでいます...
+    </div>
+    
+    <div v-else-if="error" class="error">
+      {{ error }}
+    </div>
+    
+    <div v-else-if="users.length === 0" class="no-data">
+      ユーザーデータがありません
+    </div>
+    
+    <div v-else class="table-container">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th class="user-info">ユーザー情報</th>
+            <th 
+              v-for="day in daysInMonth" 
+              :key="day.date"
+              :class="['date-header', { 'weekend': day.isWeekend, 'today': day.isToday }]"
+            >
+              {{ day.display }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <template v-for="user in users" :key="user.id">
+            <tr>
+              <td class="user-info">
+                <div><strong>{{ user.name }}</strong></div>
+                <div>ID: {{ user.user_id }}</div>
+                <div>時給: ¥{{ user.wages }}</div>
+              </td>
+              <td 
+                v-for="day in daysInMonth" 
+                :key="day.date"
+                :class="['work-time-cell', { 'weekend': day.isWeekend, 'today': day.isToday }]"
+              >
+                <div v-if="getWorkLog(user.id, day.date)">
+                  <div v-if="!isEditing(user.id, day.date)" class="time-display">
+                    <div>開始: {{ formatTime(getWorkLog(user.id, day.date).work_start) }}</div>
+                    <div>終了: {{ formatTime(getWorkLog(user.id, day.date).work_end) }}</div>
+                    <div>
+                      <button class="edit-btn" @click="startEdit(user.id, day.date)">編集</button>
+                      <button class="delete-btn" @click="deleteWorkLog(getWorkLog(user.id, day.date).id)">削除</button>
+                    </div>
+                  </div>
+                  <div v-else>
+                    <div>
+                      <input 
+                        type="time" 
+                        class="time-input"
+                        v-model="editingData[`${user.id}-${day.date}`].work_start"
+                      >
+                    </div>
+                    <div>
+                      <input 
+                        type="time" 
+                        class="time-input"
+                        v-model="editingData[`${user.id}-${day.date}`].work_end"
+                      >
+                    </div>
+                    <div>
+                      <button class="save-btn" @click="saveEdit(user.id, day.date)">保存</button>
+                      <button class="cancel-btn" @click="cancelEdit(user.id, day.date)">取消</button>
+                    </div>
+                  </div>
+                </div>
+                <div v-else @click="startAdd(user.id, day.date)" class="empty-cell">
+                  <div v-if="!isAdding(user.id, day.date)">
+                  </div>
+                  <div v-else>
+                    <div>
+                      <input 
+                        type="time" 
+                        class="time-input"
+                        v-model="addingData[`${user.id}-${day.date}`].work_start"
+                      >
+                    </div>
+                    <div>
+                      <input 
+                        type="time" 
+                        class="time-input"
+                        v-model="addingData[`${user.id}-${day.date}`].work_end"
+                      >
+                    </div>
+                    <div>
+                      <button class="save-btn" @click="saveAdd(user.id, day.date)">保存</button>
+                      <button class="cancel-btn" @click="cancelAdd(user.id, day.date)">取消</button>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 
-const props = defineProps({
-  apiBaseUrl: { type: String, default: 'http://localhost:5174/api' }
-})
-
+// リアクティブデータ
+const users = ref([])
 const workLogs = ref([])
-const filterName = ref('')
-const sortKey = ref('user_id')
-const sortAsc = ref(true)
+const selectedMonth = ref(new Date().toISOString().slice(0, 7))
+const loading = ref(false)
+const error = ref(null)
+const editingData = ref({})
+const addingData = ref({})
+const apiUrl = 'http://localhost:5174/api'
 
-onMounted(async () => {
-  await loadLogs()
+// 計算プロパティ
+const daysInMonth = computed(() => {
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const days = []
+  const today = new Date()
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day)
+    const dateStr = date.toISOString().split('T')[0]
+    const dayOfWeek = date.getDay()
+    
+    days.push({
+      date: dateStr,
+      display: `${month}/${day}\n${['日', '月', '火', '水', '木', '金', '土'][dayOfWeek]}`,
+      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+      isToday: dateStr === today.toISOString().split('T')[0]
+    })
+  }
+  
+  return days
 })
 
-const loadLogs = async () => {
+// メソッド
+const fetchData = async () => {
+  loading.value = true
+  error.value = null
+  
   try {
-    const res = await fetch(`${props.apiBaseUrl}/work_logs`)
-    if (!res.ok) throw new Error(`取得失敗: ${res.status}`)
-    const data = await res.json()
-    data.forEach(log => {
-      if (log.work_start) log.work_start = log.work_start.slice(0, 16)
-      if (log.work_end) log.work_end = log.work_end.slice(0, 16)
-    })
-    workLogs.value = data
+    // ユーザー情報と勤務記録を並行取得
+    const [usersResponse, workLogsResponse] = await Promise.all([
+      axios.get(`${apiUrl}/Users`),
+      axios.get(`${apiUrl}/Work_logs`)
+    ])
+    
+    users.value = usersResponse.data
+    workLogs.value = workLogsResponse.data
+    
+    // 選択月の勤務記録のみにフィルタ
+    filterWorkLogsByMonth()
+    
   } catch (err) {
-    console.error('勤務ログの取得に失敗:', err)
+    console.error('データ取得エラー:', err)
+    error.value = 'データの取得に失敗しました。APIサーバーが起動していることを確認してください。'
+  } finally {
+    loading.value = false
   }
 }
 
-const filteredLogs = computed(() => {
-  let logs = [...workLogs.value]
-  if (filterName.value) {
-    logs = logs.filter(log => log.user?.name?.includes(filterName.value))
-  }
-  return logs.sort((a, b) => {
-    const valA = getValue(a, sortKey.value)
-    const valB = getValue(b, sortKey.value)
-    if (valA === undefined || valB === undefined) return 0
-    return sortAsc.value
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA))
+const filterWorkLogsByMonth = () => {
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  workLogs.value = workLogs.value.filter(log => {
+    if (!log.work_start) return false
+    
+    // work_startの日付部分を直接比較（時間調整の影響を受けない）
+    const logDate = log.work_start.split('T')[0]
+    const logYear = parseInt(logDate.split('-')[0])
+    const logMonth = parseInt(logDate.split('-')[1])
+    
+    return logYear === year && logMonth === month
   })
-})
-
-const getValue = (obj, path) => {
-  return path.split('.').reduce((o, key) => o?.[key], obj)
 }
 
-const updateLog = async (log) => {
+const getWorkLog = (userId, date) => {
+  return workLogs.value.find(log => {
+    if (!log.user_id === userId || !log.work_start) return false
+    
+    // work_startの日付部分を取得（時間調整前）
+    const logDate = log.work_start.split('T')[0]
+    return log.user_id === userId && logDate === date
+  })
+}
+
+const formatTime = (dateTime) => {
+  if (!dateTime) return '-'
+  return new Date(utcToJst(dateTime)).toLocaleTimeString('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const isEditing = (userId, date) => {
+  return editingData.value[`${userId}-${date}`] !== undefined
+}
+
+const isAdding = (userId, date) => {
+  return addingData.value[`${userId}-${date}`] !== undefined
+}
+
+const startEdit = (userId, date) => {
+  const workLog = getWorkLog(userId, date)
+  if (!workLog) return
+  
+  editingData.value[`${userId}-${date}`] = {
+    work_start: formatTimeForInput(workLog.work_start),
+    work_end: formatTimeForInput(workLog.work_end)
+  }
+}
+
+const cancelEdit = (userId, date) => {
+  delete editingData.value[`${userId}-${date}`]
+}
+
+const saveEdit = async (userId, date) => {
+  const workLog = getWorkLog(userId, date)
+  const editData = editingData.value[`${userId}-${date}`]
+  
+  if (!workLog || !editData) return
+  
   try {
-    const updatedLog = {
-      id: log.id,
-      user_id: log.user_id,
-      work_start: new Date(log.work_start).toISOString(),
-      work_end: new Date(log.work_end).toISOString(),
-      work_date: new Date(log.work_start).toISOString().split('T')[0]
+    const updatedWorkLog = {
+      ...workLog,
+      work_start: combineDateTime(date, editData.work_start),
+      work_end: combineDateTime(date, editData.work_end)
     }
-    const res = await fetch(`${props.apiBaseUrl}/work_logs/${log.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedLog)
-    })
-    if (!res.ok) throw new Error(`更新失敗: ${res.status}`)
-    alert('更新しました')
-    await loadLogs()
+    
+    await axios.put(`${apiUrl}/Work_logs/${workLog.id}`, updatedWorkLog)
+    
+    // ローカルデータを更新
+    const index = workLogs.value.findIndex(log => log.id === workLog.id)
+    if (index !== -1) {
+      workLogs.value[index] = updatedWorkLog
+    }
+    
+    delete editingData.value[`${userId}-${date}`]
+    
   } catch (err) {
     console.error('更新エラー:', err)
-    alert('更新に失敗しました')
+    alert('勤務記録の更新に失敗しました。')
   }
 }
 
-const deleteLog = async (id) => {
-  if (!confirm('この勤務記録を削除しますか？')) return
+const startAdd = (userId, date) => {
+  addingData.value[`${userId}-${date}`] = {
+    work_start: '09:00',
+    work_end: '18:00'
+  }
+}
+
+const cancelAdd = (userId, date) => {
+  delete addingData.value[`${userId}-${date}`]
+}
+
+const saveAdd = async (userId, date) => {
+  const addData = addingData.value[`${userId}-${date}`]
+  if (!addData) return
+  
   try {
-    const res = await fetch(`${props.apiBaseUrl}/work_logs/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error(`削除失敗: ${res.status}`)
-    alert('削除しました')
-    await loadLogs()
+    const newWorkLog = {
+      user_id: userId,
+      work_start: combineDateTime(date, addData.work_start),
+      work_end: combineDateTime(date, addData.work_end)
+    }
+    
+    const response = await axios.post(`${apiUrl}/Work_logs`, newWorkLog)
+    
+    // ローカルデータに追加
+    workLogs.value.push(response.data)
+    
+    delete addingData.value[`${userId}-${date}`]
+    
+  } catch (err) {
+    console.error('追加エラー:', err)
+    alert('勤務記録の追加に失敗しました。')
+  }
+}
+
+const deleteWorkLog = async (workLogId) => {
+  if (!confirm('この勤務記録を削除してもよろしいですか？')) return
+  
+  try {
+    await axios.delete(`${apiUrl}/Work_logs/${workLogId}`)
+    
+    // ローカルデータから削除
+    workLogs.value = workLogs.value.filter(log => log.id !== workLogId)
+    
   } catch (err) {
     console.error('削除エラー:', err)
-    alert('削除に失敗しました')
+    alert('勤務記録の削除に失敗しました。')
   }
 }
 
-const formatDate = (iso) => {
-  if (!iso) return '-'
-  const date = new Date(iso)
-  const jstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000))
-  return new Date(jstDate).toLocaleDateString('ja-JP')
+const formatTimeForInput = (dateTime) => {
+  if (!dateTime) return ''
+  return new Date(dateTime).toTimeString().slice(0, 5)
 }
 
-const calculateHours = (start, end) => {
-  if (!start || !end) return '-'
-  const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60)
-  return diff.toFixed(2)
+const combineDateTime = (date, time) => {
+  return `${date}T${time}:00`
 }
 
 function utcToJst(utcDateString) {
   if (!utcDateString) return ''
   const date = new Date(utcDateString)
   const jstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000))
-  return jstDate.toISOString().slice(0, 16)
+  return jstDate
 }
+
+// ライフサイクル
+onMounted(() => {
+  fetchData()
+})
 </script>
 
 <style scoped>
-.attendance-summary {
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   padding: 20px;
-  max-width: 1000px;
-  margin: auto;
 }
 
-.filters {
+.header {
   display: flex;
-  gap: 20px;
-  margin-bottom: 16px;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
 }
 
-.filters label {
+.title {
+  color: #333;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.month-selector {
   display: flex;
-  flex-direction: column;
-  font-weight: bold;
+  align-items: center;
+  gap: 10px;
+}
+
+.month-selector input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.refresh-btn {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
   font-size: 14px;
 }
 
-.attendance-summary table {
-  width: 100%;
-  border-collapse: collapse;
+.refresh-btn:hover {
+  background: #0056b3;
 }
 
-.attendance-summary th,
-.attendance-summary td {
-  padding: 8px 12px;
+.table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.attendance-table th,
+.attendance-table td {
   border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.attendance-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.user-info {
+  background-color: #f0f8ff;
+  font-weight: 600;
+  min-width: 120px;
+  text-align: left;
+  padding: 10px;
+}
+
+.date-header {
+  background-color: #e8f4f8;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  min-width: 60px;
+  font-size: 11px;
+}
+
+.work-time-cell {
+  min-width: 80px;
+  padding: 4px;
+}
+
+.time-input {
+  width: 100%;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 11px;
   text-align: center;
 }
 
-.attendance-summary th {
-  background-color: #f4f4f4;
+.time-display {
+  font-size: 11px;
+  line-height: 1.2;
 }
 
-button {
-  margin: 2px;
-  padding: 4px 8px;
-  font-size: 14px;
+.edit-btn, .save-btn, .cancel-btn, .delete-btn {
+  padding: 2px 6px;
+  margin: 1px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
 }
 
-input[type="datetime-local"] {
-  width: 180px;
+.edit-btn {
+  background: #28a745;
+  color: white;
+}
+
+.save-btn {
+  background: #007bff;
+  color: white;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.delete-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.empty-cell {
+  min-height: 60px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.empty-cell:hover {
+  background-color: #f0f8ff;
+}
+
+.add-btn {
+  background: #17a2b8;
+  color: white;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  padding: 20px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin: 20px 0;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
+
+.weekend {
+  background-color: #ffe6e6;
+}
+
+.today {
+  background-color: #fff3cd;
 }
 </style>
