@@ -159,6 +159,7 @@ const handleLogin = async () => {
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   background-color: #fff;
+   transform: translateX(50%);
 }
 
 h2 {
