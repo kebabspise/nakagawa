@@ -1,5 +1,6 @@
 <template>
   <div class="login-container">
+    <div class="app-title">Shift Ease</div>
     <h2>ログイン</h2>
     
     <!-- エラーメッセージ表示 -->
@@ -160,6 +161,20 @@ const handleLogin = async () => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   background-color: #fff;
    transform: translateX(50%);
+}
+
+.app-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #00bcd4;
+  text-shadow: 2px 2px 4px rgba(0, 188, 212, 0.3);
+  background: linear-gradient(45deg, #00bcd4, #4dd0e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
 }
 
 h2 {
