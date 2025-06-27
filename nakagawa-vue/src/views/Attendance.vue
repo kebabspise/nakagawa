@@ -1,17 +1,17 @@
 <template>
   <div class="attendance-summary">
-    <h3>ユーザー別勤務時間一覧</h3>
+    <h3>従業員別勤務時間一覧</h3>
 
     <div class="filters">
       <label>
-        ユーザー名:
+        名前:
         <input v-model="filterName" placeholder="名前でフィルター" />
       </label>
       <label>
         並び替え:
         <select v-model="sortKey">
-          <option value="user_id">ユーザーID</option>
-          <option value="user.name">ユーザー名</option>
+          <option value="user_id">ID</option>
+          <option value="user.name">名前</option>
           <option value="work_start">開始時刻</option>
           <option value="work_end">終了時刻</option>
         </select>
@@ -25,8 +25,8 @@
     <table>
       <thead>
         <tr>
-          <th>ユーザーID</th>
-          <th>ユーザー名</th>
+          <th>ID</th>
+          <th>名前</th>
           <th>勤務日</th>
           <th>開始時刻</th>
           <th>終了時刻</th>
@@ -140,13 +140,22 @@ const deleteLog = async (id) => {
 
 const formatDate = (iso) => {
   if (!iso) return '-'
-  return new Date(iso).toLocaleDateString('ja-JP')
+  const date = new Date(iso)
+  const jstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000))
+  return new Date(jstDate).toLocaleDateString('ja-JP')
 }
 
 const calculateHours = (start, end) => {
   if (!start || !end) return '-'
   const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60)
   return diff.toFixed(2)
+}
+
+function utcToJst(utcDateString) {
+  if (!utcDateString) return ''
+  const date = new Date(utcDateString)
+  const jstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000))
+  return jstDate.toISOString().slice(0, 16)
 }
 </script>
 
