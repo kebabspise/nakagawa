@@ -12,11 +12,11 @@ namespace asp_nakagawa.Data
             {
                 var sampleUser = new User
                 {
-                    user_id = 0,
-                    name = "Sample",
+                    user_id = 1,
+                    name = "谷川様",
                     pass = "pass",
-                    admin = false,
-                    wages = 1000
+                    admin = true,
+                    wages = 2500
                 };
                 context.Users.Add(sampleUser);
                 context.SaveChanges();  
@@ -41,7 +41,7 @@ namespace asp_nakagawa.Data
                 {
                     work_start = DateTime.Now,
                     work_end = DateTime.Now,
-                    user_id = user.id 
+                    user_id = user.id, 
                 });
                 context.SaveChanges();
             }
