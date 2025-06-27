@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <div class="back-button-wrapper">
+      <BackButton />
+    </div>
     <div class="header">
       <h1 class="title">勤怠記録管理システム</h1>
       <div class="controls">
@@ -121,6 +124,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import BackButton from '../components/BackButton.vue'
 
 // リアクティブデータ
 const users = ref([])
