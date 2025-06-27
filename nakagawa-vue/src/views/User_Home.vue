@@ -1,24 +1,24 @@
 <template>
-  <div>
-    <!-- ユーザーヘッダー -->
+  <div class="container">
     <UserHeader />
-    
-    <div class="main-content">
-      <h1>{{ title }}</h1>
-      <h2>{{ title2 }}</h2>
+
+    <div class="content-card">
+      <h1 class="title">{{ title }}</h1>
+      <h2 class="subtitle">{{ title2 }}</h2>
 
       <div class="button-group">
-        <button @click="showTimeClockPopup = true" class="main-btn clock-btn">打刻</button>
-        <button @click="goToShiftSubmit" class="main-btn shift-btn">シフト提出</button>
-        <button @click="goToShiftCheck" class="main-btn check-btn">シフト確認</button>
+        <BackButton />
+        <button @click="showTimeClockPopup = true" class="main-btn clock-btn">🕒 打刻</button>
+        <button @click="goToShiftSubmit" class="main-btn shift-btn">📝 シフト提出</button>
+        <button @click="goToShiftCheck" class="main-btn check-btn">📅 シフト確認</button>
       </div>
-
-      <TimeClockPopup 
-        :show="showTimeClockPopup"
-        @close="showTimeClockPopup = false"
-        @clock-recorded="onClockRecorded"
-      />
     </div>
+
+    <TimeClockPopup 
+      :show="showTimeClockPopup"
+      @close="showTimeClockPopup = false"
+      @clock-recorded="onClockRecorded"
+    />
   </div>
 </template>
 
@@ -28,18 +28,17 @@ import { useRouter } from 'vue-router'
 import { useUser } from '../components/useUser'
 import TimeClockPopup from '../components/TimeClock.vue'
 import UserHeader from '../components/UserHeader.vue'
+import BackButton from '../components/BackButton.vue'
 
 const router = useRouter()
-const { currentUser, userId } = useUser()
-
-const title = ref('一般ユーザーのホーム画面です')
-const title2 = ref('サブタイトルです。')
+const { currentUser } = useUser()
+const title = ref('ようこそ！')
+const title2 = ref('必要な操作を選んでください')
 const showTimeClockPopup = ref(false)
 
-// ページ読み込み時にユーザー情報をチェック
 onMounted(() => {
   if (!currentUser.value) {
-    // ユーザー情報がない場合はログインページにリダイレクト
+    alert('ログインしてください。')
     router.push('/')
   }
 })
@@ -58,76 +57,90 @@ function goToShiftCheck() {
 </script>
 
 <style scoped>
-.main-content {
-  padding-top: 60px; /* ヘッダーの高さ分のスペース */
+.container {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 60px);
+  align-items: center;
+  background-color: #ffffff; /* ← 白背景、または none にしてOK */
+  font-family: 'Segoe UI', sans-serif;
 }
 
-h1 {
+/* カード全体を少し右へずらす */
+.content-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 50px 40px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transform: translateX(50%); /* ← 少し右にずらすポイント！ */
+}
+
+/* タイトル */
+.title {
+  font-size: 30px;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 1rem;
-  text-align: center;
+  margin-bottom: 12px;
 }
 
-h2 {
+.subtitle {
+  font-size: 18px;
   color: #666;
-  margin-bottom: 2rem;
-  font-weight: normal;
-  text-align: center;
+  margin-bottom: 35px;
 }
 
+/* ボタン縦並び */
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
   width: 100%;
-  max-width: 300px;
 }
 
+/* ボタン共通スタイル */
 .main-btn {
-  padding: 15px 30px;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
+  padding: 16px;
+  font-size: 17px;
   font-weight: bold;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: 0.2s;
+  width: 100%;
 }
 
-.main-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
+/* ボタン色設定 */
 .clock-btn {
-  background-color: #007bff;
+  background-color: #4a90e2;
   color: white;
 }
-
 .clock-btn:hover {
-  background-color: #0056b3;
+  background-color: #357ab8;
 }
 
 .shift-btn {
-  background-color: #28a745;
+  background-color: #34c38f;
   color: white;
 }
-
 .shift-btn:hover {
-  background-color: #1e7e34;
+  background-color: #2ca77a;
 }
 
 .check-btn {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: #f4b400;
+  color: white;
+}
+.check-btn:hover {
+  background-color: #d89c00;
 }
 
-.check-btn:hover {
-  background-color: #e0a800;
+/* スマホでは真ん中に */
+@media (max-width: 768px) {
+  .content-card {
+    transform: none;
+  }
 }
 </style>

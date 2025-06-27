@@ -1,5 +1,12 @@
+ <!-- ShiftSubmit -->
 <template>
   <div class="shift-submit-container">
+    <!-- 戻るボタン -->
+    <div class="back-button-wrapper">
+      <BackButton />
+    </div>
+
+    <!-- ヘッダー -->
     <div class="header">
       <h2>シフト希望提出</h2>
       <div class="user-info" v-if="currentUser">
@@ -85,6 +92,8 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { useUser } from '../components/useUser'
+import BackButton from '../components/BackButton.vue'
+
 
 // Props（APIベースURLのみ）
 const props = defineProps({
@@ -405,6 +414,7 @@ const calculateHours = (start, end) => {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+   transform: translateX(50%);
 }
 
 .header {
@@ -528,6 +538,7 @@ const calculateHours = (start, end) => {
   gap: 10px;
   justify-content: flex-end;
   margin-top: 20px;
+  
 }
 
 .btn {
