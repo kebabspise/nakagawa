@@ -2,10 +2,17 @@
   <div class="container">
     <div class="header">
       <h1 class="title">勤怠記録管理システム</h1>
-      <div class="month-selector">
-        <label>表示月:</label>
-        <input type="month" v-model="selectedMonth" @change="fetchData">
-        <button class="refresh-btn" @click="fetchData">更新</button>
+      <div class="controls">
+        <div class="month-selector">
+          <label>表示月:</label>
+          <input type="month" v-model="selectedMonth" @change="fetchData">
+          <button class="refresh-btn" @click="fetchData">更新</button>
+        </div>
+        <div class="export-controls">
+          <button class="export-btn" @click="exportToPDF" :disabled="users.length === 0">
+            PDF出力
+          </button>
+        </div>
       </div>
     </div>
     
@@ -182,6 +189,33 @@ const fetchData = async () => {
   }
 }
 
+// jsPDFライブラリを動的に読み込む関数
+const loadJsPDF = () => {
+  return new Promise((resolve, reject) => {
+    if (window.jspdf && window.jspdf.jsPDF) {
+      resolve()
+      return
+    }
+    
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    script.onload = () => {
+      // 読み込み完了後、少し待ってからresolve
+      setTimeout(() => {
+        if (window.jspdf && window.jspdf.jsPDF) {
+          resolve()
+        } else {
+          reject(new Error('jsPDFの初期化に失敗しました'))
+        }
+      }, 100)
+    }
+    script.onerror = () => {
+      reject(new Error('jsPDFライブラリの読み込みに失敗しました'))
+    }
+    document.head.appendChild(script)
+  })
+}
+
 const filterWorkLogsByMonth = (logs) => {
   const [year, month] = selectedMonth.value.split('-').map(Number)
   
@@ -314,6 +348,157 @@ const deleteWorkLog = async (workLogId) => {
   }
 }
 
+// PDF出力関数
+const exportToPDF = async () => {
+  try {
+    // jsPDFライブラリが既に読み込まれているかチェック
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      // 動的にjsPDFスクリプトを読み込み
+      await loadJsPDF()
+    }
+    
+    const doc = new window.jspdf.jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+    
+    // 日本語フォント設定（代替フォントを使用）
+    doc.setFont('helvetica')
+    
+    const [year, month] = selectedMonth.value.split('-').map(Number)
+    const title = `勤怠記録表 ${year}年${month}月`
+    
+    // タイトル
+    doc.setFontSize(16)
+    doc.text(title, 20, 20)
+    
+    // テーブル作成
+    let yPosition = 40
+    const cellWidth = 8
+    const cellHeight = 10
+    const headerHeight = 15
+    const userInfoWidth = 40
+    
+    // ヘッダー行
+    doc.setFontSize(8)
+    
+    // ユーザー情報列ヘッダー
+    doc.rect(20, yPosition, userInfoWidth, headerHeight)
+    doc.text('ユーザー情報', 22, yPosition + 8)
+    
+    // 日付ヘッダー
+    let xPosition = 20 + userInfoWidth
+    daysInMonth.value.forEach((day, index) => {
+      doc.rect(xPosition, yPosition, cellWidth, headerHeight)
+      const dayText = `${month}/${day.date.split('-')[2]}`
+      doc.text(dayText, xPosition + 1, yPosition + 6)
+      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()]
+      doc.text(dayOfWeek, xPosition + 1, yPosition + 10)
+      xPosition += cellWidth
+    })
+    
+    yPosition += headerHeight
+    
+    // データ行
+    users.value.forEach((user, userIndex) => {
+      const rowHeight = cellHeight * 2 // 2行分の高さ
+      
+      // ユーザー情報
+      doc.rect(20, yPosition, userInfoWidth, rowHeight)
+      doc.setFontSize(7)
+      doc.text(`${user.name}`, 22, yPosition + 6)
+      doc.text(`ID: ${user.user_id}`, 22, yPosition + 12)
+      doc.text(`時給: ¥${user.wages}`, 22, yPosition + 18)
+      
+      // 各日の勤務記録
+      xPosition = 20 + userInfoWidth
+      daysInMonth.value.forEach((day, dayIndex) => {
+        doc.rect(xPosition, yPosition, cellWidth, rowHeight)
+        
+        const workLog = getWorkLog(user.id, day.date)
+        if (workLog) {
+          const startTime = formatTime(workLog.work_start)
+          const endTime = formatTime(workLog.work_end)
+          
+          doc.setFontSize(6)
+          doc.text(startTime, xPosition + 0.5, yPosition + 8)
+          doc.text(endTime, xPosition + 0.5, yPosition + 14)
+        }
+        
+        xPosition += cellWidth
+      })
+      
+      yPosition += rowHeight
+      
+      // ページ境界チェック
+      if (yPosition > 180) {
+        doc.addPage()
+        yPosition = 20
+        
+        // 新しいページのヘッダーを追加
+        doc.setFontSize(16)
+        doc.text(title, 20, 20)
+        yPosition = 40
+        
+        // ヘッダー行を再度追加
+        doc.setFontSize(8)
+        doc.rect(20, yPosition, userInfoWidth, headerHeight)
+        doc.text('ユーザー情報', 22, yPosition + 8)
+        
+        xPosition = 20 + userInfoWidth
+        daysInMonth.value.forEach((day, index) => {
+          doc.rect(xPosition, yPosition, cellWidth, headerHeight)
+          const dayText = `${month}/${day.date.split('-')[2]}`
+          doc.text(dayText, xPosition + 1, yPosition + 6)
+          const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()]
+          doc.text(dayOfWeek, xPosition + 1, yPosition + 10)
+          xPosition += cellWidth
+        })
+        
+        yPosition += headerHeight
+      }
+    })
+    
+    // 統計情報を追加
+    yPosition += 10
+    doc.setFontSize(10)
+    doc.text('統計情報:', 20, yPosition)
+    yPosition += 8
+    
+    users.value.forEach(user => {
+      const userLogs = workLogs.value.filter(log => log.user_id === user.id)
+      const workDays = userLogs.length
+      
+      let totalHours = 0
+      userLogs.forEach(log => {
+        if (log.work_start && log.work_end) {
+          const start = new Date(log.work_start)
+          const end = new Date(log.work_end)
+          const hours = (end - start) / (1000 * 60 * 60)
+          totalHours += hours
+        }
+      })
+      
+      const totalWage = Math.round(totalHours * user.wages)
+      
+      doc.setFontSize(8)
+      doc.text(`${user.name}: ${workDays}日勤務, ${totalHours.toFixed(1)}時間, 給与: ¥${totalWage.toLocaleString()}`, 20, yPosition)
+      yPosition += 6
+    })
+    
+    // ファイル名を生成
+    const filename = `勤怠記録_${year}年${month}月.pdf`
+    
+    // PDFをダウンロード
+    doc.save(filename)
+    
+  } catch (err) {
+    console.error('PDF出力エラー:', err)
+    alert('PDF出力に失敗しました。')
+  }
+}
+
 const formatTimeForInput = (dateTime) => {
   if (!dateTime) return ''
   return new Date(dateTime).toTimeString().slice(0, 5)
@@ -362,6 +547,12 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.controls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
 .month-selector {
   display: flex;
   align-items: center;
@@ -387,6 +578,31 @@ onMounted(() => {
 
 .refresh-btn:hover {
   background: #0056b3;
+}
+
+.export-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.export-btn {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: #218838;
+}
+
+.export-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 
 .table-container {
