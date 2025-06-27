@@ -116,11 +116,29 @@ const showModal = ref(false)
 const selectedDate = ref('')
 const selectedShifts = ref([])
 
-// UTC時刻からJSTのDateオブジェクトを作成
-const utcToJstDate = (utcString) => {
-  if (!utcString) return null
-  const utcDate = new Date(utcString)
-  return new Date(utcDate.getTime() + (9 * 60 * 60 * 1000))
+// 日付文字列をローカル日付として解釈する関数（タイムゾーンのずれを防ぐ）
+const parseLocalDate = (dateString) => {
+  if (!dateString) return null
+  
+  // ISO 8601形式の日付文字列から日付部分のみを抽出
+  const dateOnly = dateString.split('T')[0]
+  const [year, month, day] = dateOnly.split('-').map(Number)
+  
+  // ローカルタイムゾーンでDateオブジェクトを作成
+  return new Date(year, month - 1, day)
+}
+
+// 日時文字列をローカル日時として解釈する関数
+const parseLocalDateTime = (dateTimeString) => {
+  if (!dateTimeString) return null
+  
+  // ISO 8601形式の日時文字列を解析
+  const [datePart, timePart] = dateTimeString.split('T')
+  const [year, month, day] = datePart.split('-').map(Number)
+  const [hour, minute, second] = timePart.split(':').map(Number)
+  
+  // ローカルタイムゾーンでDateオブジェクトを作成
+  return new Date(year, month - 1, day, hour, minute, second || 0)
 }
 
 // ユーザー情報を含むシフトデータ
@@ -246,14 +264,26 @@ const handleDateClick = (dateStr) => {
   selectedShifts.value = enrichedShifts.value.filter(shift => {
     let shiftDate
     if (shift.work_date) {
-      shiftDate = new Date(shift.work_date)
+      // work_dateを使用してローカル日付として解釈
+      shiftDate = parseLocalDate(shift.work_date)
     } else {
-      shiftDate = new Date(shift.work_start)
+      // work_startから日付を抽出
+      shiftDate = parseLocalDate(shift.work_start)
     }
-    return shiftDate.toISOString().split('T')[0] === dateStr
+    
+    if (!shiftDate) return false
+    
+    // 日付文字列として比較
+    const shiftDateStr = shiftDate.getFullYear() + '-' + 
+                         String(shiftDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(shiftDate.getDate()).padStart(2, '0')
+    
+    return shiftDateStr === dateStr
   }).sort((a, b) => {
     // 開始時間順にソート
-    return new Date(a.work_start) - new Date(b.work_start)
+    const aStart = parseLocalDateTime(a.work_start)
+    const bStart = parseLocalDateTime(b.work_start)
+    return aStart - bStart
   })
   
   showModal.value = true
@@ -274,11 +304,19 @@ const updateCalendarEvents = () => {
   enrichedShifts.value.forEach(shift => {
     let shiftDate
     if (shift.work_date) {
-      shiftDate = new Date(shift.work_date)
+      // work_dateを使用してローカル日付として解釈
+      shiftDate = parseLocalDate(shift.work_date)
     } else {
-      shiftDate = new Date(shift.work_start)
+      // work_startから日付を抽出
+      shiftDate = parseLocalDate(shift.work_start)
     }
-    const dateStr = shiftDate.toISOString().split('T')[0]
+    
+    if (!shiftDate) return
+    
+    // 日付文字列として統一
+    const dateStr = shiftDate.getFullYear() + '-' + 
+                   String(shiftDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                   String(shiftDate.getDate()).padStart(2, '0')
     
     if (!eventsByDate[dateStr]) {
       eventsByDate[dateStr] = []
@@ -318,7 +356,9 @@ const formatDateHeader = (dateStr) => {
   if (!dateStr) return ''
   
   try {
-    const date = new Date(dateStr + 'T00:00:00')
+    const [year, month, day] = dateStr.split('-').map(Number)
+    const date = new Date(year, month - 1, day)
+    
     return date.toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: '2-digit',
@@ -336,8 +376,8 @@ const formatTime = (dateTimeString) => {
   if (!dateTimeString) return '-'
   
   try {
-    const date = new Date(dateTimeString)
-    if (isNaN(date.getTime())) return '-'
+    const date = parseLocalDateTime(dateTimeString)
+    if (!date || isNaN(date.getTime())) return '-'
     
     return date.toLocaleTimeString('ja-JP', {
       hour: '2-digit',
@@ -363,10 +403,10 @@ const calculateWorkingHoursNumeric = (startTime, endTime) => {
   if (!startTime || !endTime) return 0
   
   try {
-    const start = new Date(startTime)
-    const end = new Date(endTime)
+    const start = parseLocalDateTime(startTime)
+    const end = parseLocalDateTime(endTime)
     
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0
+    if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return 0
     
     const diffMs = end.getTime() - start.getTime()
     const diffHours = diffMs / (1000 * 60 * 60)
