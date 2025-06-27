@@ -148,6 +148,15 @@ const daysInMonth = computed(() => {
   return days
 })
 
+// work_startから日付部分（yyyy-mm-dd）を抽出するヘルパー関数（1日引く）
+const getWorkStartDateString = (workStart) => {
+  if (!workStart) return null
+  // work_startの日付から1日引いた日付を取得
+  const workStartDate = new Date(workStart)
+  const adjustedDate = new Date(workStartDate.getTime())// - (24 * 60 * 60 * 1000)) // 1日（24時間）を引く
+  return adjustedDate.toISOString().split('T')[0]
+}
+
 // メソッド
 const fetchData = async () => {
   loading.value = true
@@ -161,10 +170,9 @@ const fetchData = async () => {
     ])
     
     users.value = usersResponse.data
-    workLogs.value = workLogsResponse.data
-    
-    // 選択月の勤務記録のみにフィルタ
-    filterWorkLogsByMonth()
+    // 全ての勤務記録を取得してから、選択月でフィルタ
+    const allWorkLogs = workLogsResponse.data
+    workLogs.value = filterWorkLogsByMonth(allWorkLogs)
     
   } catch (err) {
     console.error('データ取得エラー:', err)
@@ -174,15 +182,15 @@ const fetchData = async () => {
   }
 }
 
-const filterWorkLogsByMonth = () => {
+const filterWorkLogsByMonth = (logs) => {
   const [year, month] = selectedMonth.value.split('-').map(Number)
-  workLogs.value = workLogs.value.filter(log => {
-    if (!log.work_start) return false
+  
+  return logs.filter(log => {
+    const workStartDate = getWorkStartDateString(log.work_start)
+    if (!workStartDate) return false
     
-    // work_startの日付部分を直接比較（時間調整の影響を受けない）
-    const logDate = log.work_start.split('T')[0]
-    const logYear = parseInt(logDate.split('-')[0])
-    const logMonth = parseInt(logDate.split('-')[1])
+    const logYear = parseInt(workStartDate.split('-')[0])
+    const logMonth = parseInt(workStartDate.split('-')[1])
     
     return logYear === year && logMonth === month
   })
@@ -190,11 +198,10 @@ const filterWorkLogsByMonth = () => {
 
 const getWorkLog = (userId, date) => {
   return workLogs.value.find(log => {
-    if (!log.user_id === userId || !log.work_start) return false
+    if (log.user_id !== userId) return false
     
-    // work_startの日付部分を取得（時間調整前）
-    const logDate = log.work_start.split('T')[0]
-    return log.user_id === userId && logDate === date
+    const workStartDate = getWorkStartDateString(log.work_start)
+    return workStartDate === date
   })
 }
 
