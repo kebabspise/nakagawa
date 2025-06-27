@@ -106,16 +106,73 @@
       </div>
     </div>
 
-    <!-- 検索結果・従業員情報表示 -->
-    <div v-if="currentUser" class="user-info-section">
-      <div class="user-card">
+    <!-- 従業員一覧表示 -->
+    <div class="users-list-section">
+      <div class="section-header">
+        <h3>従業員一覧</h3>
+        <button class="btn btn-secondary" @click="loadAllUsers">
+          一覧更新
+        </button>
+      </div>
+      
+      <div v-if="users.length > 0" class="users-grid">
+        <div v-for="user in users" :key="user.id" class="user-card">
+          <div class="user-card-header">
+            <h4>{{ user.name }}</h4>
+            <div class="user-actions">
+              <button class="btn btn-primary" @click="startEdit(user)">
+                編集
+              </button>
+              <button 
+                class="btn btn-danger" 
+                @click="confirmDelete(user.user_id)"
+                :disabled="isLastAdmin(user)"
+                :title="isLastAdmin(user) ? '最後の管理者のため削除できません' : ''"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+          
+          <div class="user-details">
+            <div class="detail-item">
+              <span class="label">従業員ID:</span>
+              <span class="value">{{ user.user_id }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">管理者権限:</span>
+              <span class="value admin-badge" :class="{ 'is-admin': user.admin }">
+                {{ user.admin ? 'あり' : 'なし' }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="label">時給:</span>
+              <span class="value">¥{{ user.wages.toLocaleString() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div v-else class="no-users-message">
+        従業員データがありません
+      </div>
+    </div>
+
+    <!-- 検索結果表示（検索時のみ） -->
+    <div v-if="currentUser && searchUserId" class="user-info-section">
+      <div class="user-card highlighted">
         <div class="user-card-header">
-          <h3>従業員情報</h3>
+          <h3>検索結果</h3>
           <div class="user-actions">
             <button class="btn btn-primary" @click="startEdit(currentUser)">
               編集
             </button>
-            <button class="btn btn-danger" @click="confirmDelete(currentUser.user_id)">
+            <button 
+              class="btn btn-danger" 
+              @click="confirmDelete(currentUser.user_id)"
+              :disabled="isLastAdmin(currentUser)"
+              :title="isLastAdmin(currentUser) ? '最後の管理者のため削除できません' : ''"
+            >
               削除
             </button>
           </div>
@@ -132,7 +189,9 @@
           </div>
           <div class="detail-item">
             <span class="label">管理者権限:</span>
-            <span class="value">{{ currentUser.admin ? 'あり' : 'なし' }}</span>
+            <span class="value admin-badge" :class="{ 'is-admin': currentUser.admin }">
+              {{ currentUser.admin ? 'あり' : 'なし' }}
+            </span>
           </div>
           <div class="detail-item">
             <span class="label">時給:</span>
@@ -172,10 +231,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import BackButton from '../components/BackButton.vue'
 
 // リアクティブデータ
+const users = ref([])
 const currentUser = ref(null)
 const showAddForm = ref(false)
 const editingUser = ref(null)
@@ -192,6 +252,33 @@ const formData = reactive({
   admin: false,
   wages: 0
 })
+
+// コンポーネントマウント時に全ユーザーを読み込む
+onMounted(() => {
+  loadAllUsers()
+})
+
+// 全ユーザー読み込み
+const loadAllUsers = async () => {
+  try {
+    const response = await fetch('http://localhost:5174/api/users')
+    if (response.ok) {
+      users.value = await response.json()
+    } else {
+      showMessage('ユーザー一覧の取得に失敗しました', 'error')
+    }
+  } catch (error) {
+    showMessage('ユーザー一覧の取得中にエラーが発生しました', 'error')
+    console.error('Load users error:', error)
+  }
+}
+
+// 最後の管理者かどうかをチェック
+const isLastAdmin = (user) => {
+  if (!user.admin) return false
+  const adminCount = users.value.filter(u => u.admin).length
+  return adminCount === 1
+}
 
 // 従業員検索
 const searchUser = async () => {
@@ -276,6 +363,7 @@ const createUser = async () => {
   if (response.ok) {
     showMessage('従業員を追加しました', 'success')
     closeForm()
+    await loadAllUsers() // 一覧を更新
   } else {
     showMessage('従業員の追加に失敗しました', 'error')
   }
@@ -294,7 +382,8 @@ const updateUser = async () => {
   if (response.ok) {
     showMessage('従業員情報を更新しました', 'success')
     closeForm()
-    // 表示中の従業員情報を更新
+    await loadAllUsers() // 一覧を更新
+    // 検索結果の従業員情報も更新
     if (currentUser.value && currentUser.value.user_id === formData.user_id) {
       await searchUser()
     }
@@ -305,6 +394,13 @@ const updateUser = async () => {
 
 // 削除確認
 const confirmDelete = (userId) => {
+  // 最後の管理者の場合は削除確認ダイアログを表示しない
+  const userToDelete = users.value.find(u => u.user_id === userId)
+  if (isLastAdmin(userToDelete)) {
+    showMessage('最後の管理者のため削除できません', 'error')
+    return
+  }
+  
   deleteUserId.value = userId
   showDeleteConfirm.value = true
 }
@@ -318,6 +414,7 @@ const deleteUser = async () => {
 
     if (response.ok) {
       showMessage('従業員を削除しました', 'success')
+      await loadAllUsers() // 一覧を更新
       if (currentUser.value && currentUser.value.user_id === deleteUserId.value) {
         currentUser.value = null
       }
@@ -402,7 +499,7 @@ const showMessage = (text, type = 'success') => {
   color: white;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background-color: #c82333;
 }
 
@@ -525,6 +622,30 @@ const showMessage = (text, type = 'success') => {
   flex: 1;
 }
 
+.users-list-section {
+  margin-bottom: 30px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.section-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+
 .user-info-section {
   margin-bottom: 20px;
 }
@@ -537,17 +658,23 @@ const showMessage = (text, type = 'success') => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.user-card.highlighted {
+  border: 2px solid #28a745;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+}
+
 .user-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 15px 20px;
   border-bottom: 1px solid #eee;
   background-color: #f8f9fa;
   border-radius: 8px 8px 0 0;
 }
 
-.user-card-header h3 {
+.user-card-header h3,
+.user-card-header h4 {
   margin: 0;
   color: #333;
 }
@@ -578,6 +705,28 @@ const showMessage = (text, type = 'success') => {
 .detail-item .value {
   color: #333;
   font-size: 16px;
+}
+
+.admin-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.admin-badge.is-admin {
+  background-color: #e9f7ef;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.no-users-message {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 40px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
 }
 
 .message {
@@ -614,6 +763,10 @@ const showMessage = (text, type = 'success') => {
     flex-direction: column;
   }
 
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+
   .user-details {
     grid-template-columns: 1fr;
   }
@@ -626,6 +779,12 @@ const showMessage = (text, type = 'success') => {
 
   .form-actions, .user-actions {
     flex-direction: column;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
   }
 }
 </style>
