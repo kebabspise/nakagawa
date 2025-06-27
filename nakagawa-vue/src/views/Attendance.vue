@@ -189,7 +189,18 @@ const fetchData = async () => {
   }
 }
 
-// jsPDFライブラリを動的に読み込む関数
+// スクリプト読み込みヘルパー関数
+const loadScript = (src) => {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = src
+    script.onload = resolve
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+
+// jsPDFライブラリを動的に読み込む関数（改良版）
 const loadJsPDF = () => {
   return new Promise((resolve, reject) => {
     if (window.jspdf && window.jspdf.jsPDF) {
@@ -197,23 +208,200 @@ const loadJsPDF = () => {
       return
     }
     
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
-    script.onload = () => {
-      // 読み込み完了後、少し待ってからresolve
-      setTimeout(() => {
+    // jsPDFの本体とフォント拡張を読み込み
+    const loadScripts = async () => {
+      try {
+        // jsPDF本体
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        
+        // 少し待ってから初期化チェック
+        await new Promise(resolve => setTimeout(resolve, 200))
+        
         if (window.jspdf && window.jspdf.jsPDF) {
           resolve()
         } else {
           reject(new Error('jsPDFの初期化に失敗しました'))
         }
-      }, 100)
+      } catch (error) {
+        reject(error)
+      }
     }
-    script.onerror = () => {
-      reject(new Error('jsPDFライブラリの読み込みに失敗しました'))
-    }
-    document.head.appendChild(script)
+    
+    loadScripts()
   })
+}
+
+// 印刷可能なHTMLを生成
+const generatePrintableHTML = () => {
+  const [year, month] = selectedMonth.value.split('-').map(Number)
+  const title = `勤怠記録表 ${year}年${month}月`
+  
+  let html = `<div class="title">${title}</div>`
+  
+  // テーブル開始
+  html += '<table>'
+  
+  // ヘッダー行
+  html += '<thead><tr>'
+  html += '<th class="user-info">ユーザー情報</th>'
+  
+  daysInMonth.value.forEach(day => {
+    const dayNum = day.date.split('-')[2]
+    const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()]
+    const weekendClass = day.isWeekend ? 'weekend' : ''
+    html += `<th class="${weekendClass}">${month}/${dayNum}<br>${dayOfWeek}</th>`
+  })
+  
+  html += '</tr></thead>'
+  
+  // データ行
+  html += '<tbody>'
+  users.value.forEach(user => {
+    html += '<tr>'
+    html += `<td class="user-info">
+      <strong>${user.name}</strong><br>
+      ID: ${user.user_id}<br>
+      時給: ¥${user.wages}
+    </td>`
+    
+    daysInMonth.value.forEach(day => {
+      const workLog = getWorkLog(user.id, day.date)
+      const weekendClass = day.isWeekend ? 'weekend' : ''
+      
+      if (workLog) {
+        const startTime = formatTime(workLog.work_start)
+        const endTime = formatTime(workLog.work_end)
+        html += `<td class="${weekendClass}">
+          ${startTime}<br>
+          ${endTime}
+        </td>`
+      } else {
+        html += `<td class="${weekendClass}">-</td>`
+      }
+    })
+    
+    html += '</tr>'
+  })
+  html += '</tbody></table>'
+  
+  // 統計情報
+  html += '<div class="stats"><h3>統計情報</h3>'
+  users.value.forEach(user => {
+    const userLogs = workLogs.value.filter(log => log.user_id === user.id)
+    const workDays = userLogs.length
+    
+    let totalMinutes = 0
+    userLogs.forEach(log => {
+      if (log.work_start && log.work_end) {
+        const start = new Date(log.work_start)
+        const end = new Date(log.work_end)
+        const minutes = (end - start) / (1000 * 60)
+        totalMinutes += minutes
+      }
+    })
+    
+    const totalHours = Math.floor(totalMinutes / 60)
+    const remainingMinutes = totalMinutes % 60
+    const totalWage = Math.round((totalMinutes / 60) * user.wages)
+    
+    html += `<p><strong>${user.name}</strong>: ${workDays}日勤務, ${totalHours}時間${remainingMinutes}分, 給与: ¥${totalWage.toLocaleString()}</p>`
+  })
+  html += '</div>'
+  
+  return html
+}
+
+// PDF出力関数（文字化け対策版 - HTML印刷方式）
+const exportToPDF = async () => {
+  try {
+    // HTML to PDFライブラリを使用する代替案
+    const printContent = generatePrintableHTML()
+    
+    // 新しいウィンドウでHTML表示
+    const printWindow = window.open('', '_blank', 'width=1200,height=800')
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>勤怠記録表</title>
+        <style>
+          body {
+            font-family: 'Meiryo', 'MS PGothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+            margin: 20px;
+            font-size: 12px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+          }
+          th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+          }
+          .user-info {
+            text-align: left;
+            background-color: #f8f8f8;
+            min-width: 120px;
+          }
+          .weekend {
+            background-color: #ffe6e6;
+          }
+          .title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+          }
+          .stats {
+            margin-top: 20px;
+            font-size: 11px;
+          }
+          .stats h3 {
+            margin-bottom: 10px;
+          }
+          .stats p {
+            margin: 5px 0;
+          }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+            table { font-size: 10px; }
+            th, td { padding: 6px; }
+          }
+          @page {
+            size: A4 landscape;
+            margin: 1cm;
+          }
+        </style>
+      </head>
+      <body>
+        ${printContent}
+        <div class="no-print" style="margin-top: 20px; text-align: center;">
+          <button onclick="window.print()" style="padding: 10px 20px; margin: 5px; font-size: 14px;">印刷</button>
+          <button onclick="window.close()" style="padding: 10px 20px; margin: 5px; font-size: 14px;">閉じる</button>
+        </div>
+      </body>
+      </html>
+    `)
+    printWindow.document.close()
+    
+    // 自動的に印刷ダイアログを開く
+    setTimeout(() => {
+      printWindow.print()
+    }, 500)
+    
+  } catch (err) {
+    console.error('PDF出力エラー:', err)
+    alert('PDF出力に失敗しました。')
+  }
 }
 
 const filterWorkLogsByMonth = (logs) => {
@@ -345,157 +533,6 @@ const deleteWorkLog = async (workLogId) => {
   } catch (err) {
     console.error('削除エラー:', err)
     alert('勤務記録の削除に失敗しました。')
-  }
-}
-
-// PDF出力関数
-const exportToPDF = async () => {
-  try {
-    // jsPDFライブラリが既に読み込まれているかチェック
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      // 動的にjsPDFスクリプトを読み込み
-      await loadJsPDF()
-    }
-    
-    const doc = new window.jspdf.jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
-    })
-    
-    // 日本語フォント設定（代替フォントを使用）
-    doc.setFont('helvetica')
-    
-    const [year, month] = selectedMonth.value.split('-').map(Number)
-    const title = `勤怠記録表 ${year}年${month}月`
-    
-    // タイトル
-    doc.setFontSize(16)
-    doc.text(title, 20, 20)
-    
-    // テーブル作成
-    let yPosition = 40
-    const cellWidth = 8
-    const cellHeight = 10
-    const headerHeight = 15
-    const userInfoWidth = 40
-    
-    // ヘッダー行
-    doc.setFontSize(8)
-    
-    // ユーザー情報列ヘッダー
-    doc.rect(20, yPosition, userInfoWidth, headerHeight)
-    doc.text('ユーザー情報', 22, yPosition + 8)
-    
-    // 日付ヘッダー
-    let xPosition = 20 + userInfoWidth
-    daysInMonth.value.forEach((day, index) => {
-      doc.rect(xPosition, yPosition, cellWidth, headerHeight)
-      const dayText = `${month}/${day.date.split('-')[2]}`
-      doc.text(dayText, xPosition + 1, yPosition + 6)
-      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()]
-      doc.text(dayOfWeek, xPosition + 1, yPosition + 10)
-      xPosition += cellWidth
-    })
-    
-    yPosition += headerHeight
-    
-    // データ行
-    users.value.forEach((user, userIndex) => {
-      const rowHeight = cellHeight * 2 // 2行分の高さ
-      
-      // ユーザー情報
-      doc.rect(20, yPosition, userInfoWidth, rowHeight)
-      doc.setFontSize(7)
-      doc.text(`${user.name}`, 22, yPosition + 6)
-      doc.text(`ID: ${user.user_id}`, 22, yPosition + 12)
-      doc.text(`時給: ¥${user.wages}`, 22, yPosition + 18)
-      
-      // 各日の勤務記録
-      xPosition = 20 + userInfoWidth
-      daysInMonth.value.forEach((day, dayIndex) => {
-        doc.rect(xPosition, yPosition, cellWidth, rowHeight)
-        
-        const workLog = getWorkLog(user.id, day.date)
-        if (workLog) {
-          const startTime = formatTime(workLog.work_start)
-          const endTime = formatTime(workLog.work_end)
-          
-          doc.setFontSize(6)
-          doc.text(startTime, xPosition + 0.5, yPosition + 8)
-          doc.text(endTime, xPosition + 0.5, yPosition + 14)
-        }
-        
-        xPosition += cellWidth
-      })
-      
-      yPosition += rowHeight
-      
-      // ページ境界チェック
-      if (yPosition > 180) {
-        doc.addPage()
-        yPosition = 20
-        
-        // 新しいページのヘッダーを追加
-        doc.setFontSize(16)
-        doc.text(title, 20, 20)
-        yPosition = 40
-        
-        // ヘッダー行を再度追加
-        doc.setFontSize(8)
-        doc.rect(20, yPosition, userInfoWidth, headerHeight)
-        doc.text('ユーザー情報', 22, yPosition + 8)
-        
-        xPosition = 20 + userInfoWidth
-        daysInMonth.value.forEach((day, index) => {
-          doc.rect(xPosition, yPosition, cellWidth, headerHeight)
-          const dayText = `${month}/${day.date.split('-')[2]}`
-          doc.text(dayText, xPosition + 1, yPosition + 6)
-          const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(day.date).getDay()]
-          doc.text(dayOfWeek, xPosition + 1, yPosition + 10)
-          xPosition += cellWidth
-        })
-        
-        yPosition += headerHeight
-      }
-    })
-    
-    // 統計情報を追加
-    yPosition += 10
-    doc.setFontSize(10)
-    doc.text('統計情報:', 20, yPosition)
-    yPosition += 8
-    
-    users.value.forEach(user => {
-      const userLogs = workLogs.value.filter(log => log.user_id === user.id)
-      const workDays = userLogs.length
-      
-      let totalHours = 0
-      userLogs.forEach(log => {
-        if (log.work_start && log.work_end) {
-          const start = new Date(log.work_start)
-          const end = new Date(log.work_end)
-          const hours = (end - start) / (1000 * 60 * 60)
-          totalHours += hours
-        }
-      })
-      
-      const totalWage = Math.round(totalHours * user.wages)
-      
-      doc.setFontSize(8)
-      doc.text(`${user.name}: ${workDays}日勤務, ${totalHours.toFixed(1)}時間, 給与: ¥${totalWage.toLocaleString()}`, 20, yPosition)
-      yPosition += 6
-    })
-    
-    // ファイル名を生成
-    const filename = `勤怠記録_${year}年${month}月.pdf`
-    
-    // PDFをダウンロード
-    doc.save(filename)
-    
-  } catch (err) {
-    console.error('PDF出力エラー:', err)
-    alert('PDF出力に失敗しました。')
   }
 }
 
