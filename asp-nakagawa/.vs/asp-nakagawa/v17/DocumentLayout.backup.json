@@ -83,8 +83,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\User.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:18:56.497Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:18:56.497Z"
             },
             {
               "$type": "Document",
@@ -96,8 +95,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\Work_log.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:25:46.314Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:25:46.314Z"
             },
             {
               "$type": "Document",
@@ -109,8 +107,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\Shift_request.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:32:04.917Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:32:04.917Z"
             },
             {
               "$type": "Document",
@@ -122,8 +119,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\Shift_confirm.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:32:51.863Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:32:51.863Z"
             },
             {
               "$type": "Document",
@@ -135,8 +131,7 @@
               "RelativeToolTip": "asp-nakagawa\\Controllers\\Shift_requestsController.cs",
               "ViewState": "AgIAADkAAAAAAAAAAAAYwGYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:45:12.877Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T05:45:12.877Z"
             },
             {
               "$type": "Document",
@@ -148,8 +143,7 @@
               "RelativeToolTip": "asp-nakagawa\\Controllers\\Shift_confirmsController.cs",
               "ViewState": "AgIAADMAAAAAAAAAAAAYwEUAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:51:54.042Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T05:51:54.042Z"
             },
             {
               "$type": "Document",
@@ -161,8 +155,7 @@
               "RelativeToolTip": "asp-nakagawa\\Controllers\\UsersController.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAAAwAsAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:46:12.388Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:46:12.388Z"
             },
             {
               "$type": "Document",
@@ -174,8 +167,7 @@
               "RelativeToolTip": "asp-nakagawa\\Controllers\\Work_logsController.cs",
               "ViewState": "AgIAACUAAAAAAAAAAAAUwD4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T05:23:06.469Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T05:23:06.469Z"
             },
             {
               "$type": "Document",
@@ -187,8 +179,7 @@
               "RelativeToolTip": "asp-nakagawa\\Data\\AppDBContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T06:27:07.94Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T06:27:07.94Z"
             },
             {
               "$type": "Document",
