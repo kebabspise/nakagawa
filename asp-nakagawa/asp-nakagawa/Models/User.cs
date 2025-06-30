@@ -12,6 +12,7 @@ namespace asp_nakagawa.Models
         public string? pass { get; set; }
         public bool admin {  get; set; }
         public int wages { get; set; }
+        public int store {  get; set; }
 
         public ICollection<Shift_request>? Shift_requests { get; set; }
         public ICollection<Shift_confirm>? Shift_confirms { get; set; }

@@ -690,6 +690,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "store": {
+            "type": "integer",
+            "format": "int32"
+          },
           "shift_requests": {
             "type": "array",
             "items": {
