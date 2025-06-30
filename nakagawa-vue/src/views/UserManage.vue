@@ -80,6 +80,18 @@
             />
           </div>
           
+          <div class="form-group">
+            <label for="store">店舗番号:</label>
+            <input 
+              id="store"
+              v-model.number="formData.store" 
+              type="number" 
+              required
+              min="1"
+              class="form-control"
+            />
+          </div>
+          
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">
               {{ editingUser ? '更新' : '追加' }}
@@ -92,31 +104,58 @@
       </div>
     </div>
 
-    <!-- 従業員検索 -->
+    <!-- 検索・絞り込みセクション -->
     <div class="search-section">
       <div class="search-form">
-        <input 
-          v-model.number="searchUserId" 
-          type="number" 
-          placeholder="従業員IDで検索"
-          class="form-control search-input"
-        />
-        <button class="btn btn-primary" @click="searchUser">検索</button>
-        <button class="btn btn-secondary" @click="clearSearch">クリア</button>
+        <!-- 従業員ID検索 -->
+        <div class="search-item">
+          <label for="search-user-id">従業員ID検索:</label>
+          <input 
+            id="search-user-id"
+            v-model.number="searchUserId" 
+            type="number" 
+            placeholder="従業員IDで検索"
+            class="form-control search-input"
+          />
+          <button class="btn btn-primary" @click="searchUser">検索</button>
+        </div>
+        
+        <!-- 店舗番号絞り込み -->
+        <div class="search-item">
+          <label for="filter-store">店舗番号絞り込み:</label>
+          <select 
+            id="filter-store"
+            v-model.number="filterStore" 
+            class="form-control search-input"
+            @change="filterByStore"
+          >
+            <option value="">全店舗</option>
+            <option v-for="storeNum in availableStores" :key="storeNum" :value="storeNum">
+              店舗{{ storeNum }}
+            </option>
+          </select>
+        </div>
+        
+        <button class="btn btn-secondary" @click="clearSearch">すべてクリア</button>
       </div>
     </div>
 
     <!-- 従業員一覧表示 -->
     <div class="users-list-section">
       <div class="section-header">
-        <h3>従業員一覧</h3>
+        <h3>
+          従業員一覧
+          <span v-if="filterStore" class="filter-indicator">
+            （店舗{{ filterStore }}のみ表示）
+          </span>
+        </h3>
         <button class="btn btn-secondary" @click="loadAllUsers">
           一覧更新
         </button>
       </div>
       
-      <div v-if="users.length > 0" class="users-grid">
-        <div v-for="user in users" :key="user.id" class="user-card">
+      <div v-if="displayUsers.length > 0" class="users-grid">
+        <div v-for="user in displayUsers" :key="user.id" class="user-card">
           <div class="user-card-header">
             <h4>{{ user.name }}</h4>
             <div class="user-actions">
@@ -140,6 +179,10 @@
               <span class="value">{{ user.user_id }}</span>
             </div>
             <div class="detail-item">
+              <span class="label">店舗番号:</span>
+              <span class="value store-badge">店舗{{ user.store }}</span>
+            </div>
+            <div class="detail-item">
               <span class="label">管理者権限:</span>
               <span class="value admin-badge" :class="{ 'is-admin': user.admin }">
                 {{ user.admin ? 'あり' : 'なし' }}
@@ -154,7 +197,12 @@
       </div>
       
       <div v-else class="no-users-message">
-        従業員データがありません
+        <span v-if="filterStore">
+          店舗{{ filterStore }}に該当する従業員データがありません
+        </span>
+        <span v-else>
+          従業員データがありません
+        </span>
       </div>
     </div>
 
@@ -186,6 +234,10 @@
           <div class="detail-item">
             <span class="label">氏名:</span>
             <span class="value">{{ currentUser.name }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">店舗番号:</span>
+            <span class="value store-badge">店舗{{ currentUser.store }}</span>
           </div>
           <div class="detail-item">
             <span class="label">管理者権限:</span>
@@ -231,7 +283,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import BackButton from '../components/BackButton.vue'
 
 // リアクティブデータ
@@ -240,6 +292,7 @@ const currentUser = ref(null)
 const showAddForm = ref(false)
 const editingUser = ref(null)
 const searchUserId = ref(null)
+const filterStore = ref('')
 const message = ref('')
 const messageType = ref('success')
 const showDeleteConfirm = ref(false)
@@ -250,7 +303,21 @@ const formData = reactive({
   name: '',
   pass: '',
   admin: false,
-  wages: 0
+  wages: 0,
+  store: 1
+})
+
+// 計算プロパティ
+const availableStores = computed(() => {
+  const stores = [...new Set(users.value.map(user => user.store))].sort((a, b) => a - b)
+  return stores
+})
+
+const displayUsers = computed(() => {
+  if (!filterStore.value) {
+    return users.value
+  }
+  return users.value.filter(user => user.store === filterStore.value)
 })
 
 // コンポーネントマウント時に全ユーザーを読み込む
@@ -299,9 +366,15 @@ const searchUser = async () => {
   }
 }
 
-// 検索クリア
+// 店舗絞り込み
+const filterByStore = () => {
+  // フィルタが変更された時の処理（必要に応じて追加のロジックを入れる）
+}
+
+// 検索・絞り込みクリア
 const clearSearch = () => {
   searchUserId.value = null
+  filterStore.value = ''
   currentUser.value = null
   message.value = ''
 }
@@ -314,7 +387,8 @@ const startEdit = (user) => {
     name: user.name,
     pass: '', // セキュリティのため空にする
     admin: user.admin,
-    wages: user.wages
+    wages: user.wages,
+    store: user.store
   })
 }
 
@@ -332,7 +406,8 @@ const resetForm = () => {
     name: '',
     pass: '',
     admin: false,
-    wages: 0
+    wages: 0,
+    store: 1
   })
 }
 
@@ -614,12 +689,25 @@ const showMessage = (text, type = 'success') => {
 
 .search-form {
   display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-item {
+  display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.search-item label {
+  min-width: 140px;
+  font-weight: bold;
+  color: #333;
+}
+
 .search-input {
   flex: 1;
+  max-width: 200px;
 }
 
 .users-list-section {
@@ -638,6 +726,12 @@ const showMessage = (text, type = 'success') => {
 .section-header h3 {
   margin: 0;
   color: #333;
+}
+
+.filter-indicator {
+  font-size: 14px;
+  color: #28a745;
+  font-weight: normal;
 }
 
 .users-grid {
@@ -720,6 +814,16 @@ const showMessage = (text, type = 'success') => {
   border: 1px solid #c3e6cb;
 }
 
+.store-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+}
+
 .no-users-message {
   text-align: center;
   color: #666;
@@ -760,7 +864,20 @@ const showMessage = (text, type = 'success') => {
   }
 
   .search-form {
+    gap: 15px;
+  }
+
+  .search-item {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-item label {
+    min-width: auto;
+  }
+
+  .search-input {
+    max-width: none;
   }
 
   .users-grid {
