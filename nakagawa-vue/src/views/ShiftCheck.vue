@@ -11,6 +11,7 @@
       <h2>シフトカレンダー</h2>
       <div class="user-info" v-if="currentUser">
         <span>ユーザー: {{ currentUser.name }}</span>
+        <span class="store-info">店舗: {{ currentUser.store }}号店</span>
       </div>
     </div>
 
@@ -69,7 +70,7 @@
 
     <!-- シフト統計表示 -->
     <div class="statistics-section">
-      <h3>シフト統計</h3>
+      <h3>シフト統計 ({{ currentUser?.store }}号店)</h3>
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-number">{{ totalShifts }}</div>
@@ -141,18 +142,32 @@ const parseLocalDateTime = (dateTimeString) => {
   return new Date(year, month - 1, day, hour, minute, second || 0)
 }
 
-// ユーザー情報を含むシフトデータ
-const enrichedShifts = computed(() => {
-  if (!Array.isArray(shifts.value) || !Array.isArray(users.value)) {
+// 同じ店舗のユーザーのみをフィルタリング
+const sameStoreUsers = computed(() => {
+  if (!Array.isArray(users.value) || !currentUser.value?.store) {
     return []
   }
   
+  return users.value.filter(user => user.store === currentUser.value.store)
+})
+
+// ユーザー情報を含むシフトデータ（同じ店舗のみ）
+const enrichedShifts = computed(() => {
+  if (!Array.isArray(shifts.value) || !Array.isArray(sameStoreUsers.value)) {
+    return []
+  }
+  
+  // 同じ店舗のユーザーIDのセットを作成
+  const sameStoreUserIds = new Set(sameStoreUsers.value.map(user => user.id))
+  
   return shifts.value.filter(shift => {
-    return shift.work_start && shift.work_end && 
+    // 同じ店舗のユーザーのシフトのみを含める
+    return sameStoreUserIds.has(shift.user_id) &&
+           shift.work_start && shift.work_end && 
            calculateWorkingHoursNumeric(shift.work_start, shift.work_end) >= 1/60
   }).map(shift => {
     // Users.id = Shift_confirms.user_id の関係でユーザーを検索
-    const user = users.value.find(u => u.id === shift.user_id) || {}
+    const user = sameStoreUsers.value.find(u => u.id === shift.user_id) || {}
     return {
       ...shift,
       userName: user.name || `ユーザー${shift.user_id}`
@@ -200,6 +215,11 @@ const calendarOptions = ref({
 
 // データ取得
 const fetchData = async () => {
+  if (!currentUser.value) {
+    error.value = 'ユーザー情報が取得できませんでした。ログインし直してください。'
+    return
+  }
+
   loading.value = true
   error.value = null
   
@@ -219,6 +239,7 @@ const fetchData = async () => {
     
     console.log('Shifts API Response:', shiftsData)
     console.log('Users API Response:', usersData)
+    console.log('Current User Store:', currentUser.value.store)
     
     // シフトデータの処理
     if (Array.isArray(shiftsData)) {
@@ -237,6 +258,8 @@ const fetchData = async () => {
     } else {
       users.value = []
     }
+    
+    console.log('Same Store Users:', sameStoreUsers.value)
     
     updateCalendarEvents()
     
@@ -452,6 +475,14 @@ onMounted(async () => {
   border-radius: 4px;
   font-weight: bold;
   color: #495057;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.store-info {
+  color: #007bff;
+  font-size: 0.9rem;
 }
 
 .loading {
@@ -718,6 +749,10 @@ onMounted(async () => {
   .popup-content {
     width: 95%;
     max-height: 90vh;
+  }
+  
+  .user-info {
+    align-self: stretch;
   }
 }
 </style>

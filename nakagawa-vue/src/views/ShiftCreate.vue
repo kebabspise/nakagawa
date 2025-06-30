@@ -10,6 +10,16 @@
     <div class="header">
       <h2>シフト管理</h2>
       <div class="controls">
+        <div class="store-tabs">
+          <button 
+            v-for="store in stores" 
+            :key="store.id"
+            @click="activeStore = store.id"
+            :class="['store-tab', { active: activeStore === store.id }]"
+          >
+            {{ store.name }}
+          </button>
+        </div>
         <div class="checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" v-model="showRequests" /> シフト申請を表示
@@ -25,28 +35,33 @@
     </div>
     
     <FullCalendar
+      :key="activeStore"
       :options="advancedCalendarOptions"
     />
     
     <!-- イベントがない場合の表示 -->
     <div v-if="displayEvents.length === 0" class="no-events">
-      表示するシフトがありません
+      {{ stores.find(s => s.id === activeStore)?.name }}のシフトがありません
     </div>
     
     <!-- 新規作成用モーダル -->
     <div v-if="isCreateModalOpen" class="popup-overlay" @click="closeCreateModal">
       <div class="popup-content" @click.stop>
         <div class="popup-header">
-          <h3>新規シフト作成</h3>
+          <h3>新規シフト作成 - {{ stores.find(s => s.id === activeStore)?.name }}</h3>
           <button @click="isCreateModalOpen=false" class="close-btn">&times;</button>
         </div>
         
         <form @submit.prevent="createShift" class="shift-form">
           <div class="form-group">
+            <label>店舗:</label>
+            <div class="store-info">{{ stores.find(s => s.id === activeStore)?.name }}</div>
+          </div>
+          <div class="form-group">
             <label for="user_select">従業員:</label>
             <select v-model="newShift.user_id" required class="form-control" id="user_select">
               <option value="">選択してください</option>
-              <option v-for="user in users" :key="user.id" :value="user.id">
+              <option v-for="user in storeUsers" :key="user.id" :value="user.id">
                 {{ user.name }}
               </option>
             </select>
@@ -81,6 +96,10 @@
         </div>
         
         <form @submit.prevent="saveShift" class="shift-form">
+          <div class="form-group">
+            <label>店舗:</label>
+            <div class="store-info">{{ editShift.storeName }}</div>
+          </div>
           <div class="form-group">
             <label>従業員:</label>
             <div class="user-info">{{ editShift.userName }}</div>
@@ -154,11 +173,19 @@ const isCreateModalOpen = ref(false)
 const showRequests = ref(true)
 const showConfirms = ref(true)
 const isSubmitting = ref(false)
+const activeStore = ref(1) // デフォルトは店舗1
+
+const stores = ref([
+  { id: 1, name: '1号店' },
+  { id: 2, name: '2号店' },
+  { id: 3, name: '3号店' }
+])
 
 const editShift = reactive({ 
   id: '', 
   user_id: '', 
   userName: '', 
+  storeName: '',
   start: '', 
   end: '',
   isRequest: false
@@ -172,14 +199,20 @@ const newShift = reactive({
 
 const users = ref([])
 
-// 表示するイベントを計算
+// 現在のアクティブな店舗のユーザーのみを取得
+const storeUsers = computed(() => {
+  return users.value.filter(user => user.store === activeStore.value)
+})
+
+// 表示するイベントを計算（現在のアクティブな店舗のみ）
 const displayEvents = computed(() => {
   const events = []
   
   if (showRequests.value) {
-    // 確定済みでない申請のみ表示
+    // 確定済みでない申請のみ表示（現在の店舗のみ）
     const visibleRequests = shiftRequests.value.filter(shift => 
-      !confirmedRequestIds.value.includes(shift.id)
+      !confirmedRequestIds.value.includes(shift.id) && 
+      getUserStore(shift.user_id) === activeStore.value
     )
     
     events.push(...visibleRequests.map(shift => ({
@@ -193,6 +226,7 @@ const displayEvents = computed(() => {
         originalId: shift.id,
         user_id: shift.user_id,
         userName: getUserName(shift.user_id),
+        storeName: getStoreName(getUserStore(shift.user_id)),
         work_start: shift.work_start,
         work_end: shift.work_end,
         isRequest: true
@@ -201,7 +235,12 @@ const displayEvents = computed(() => {
   }
   
   if (showConfirms.value) {
-    events.push(...shiftConfirms.value.map(shift => ({
+    // 確定シフト（現在の店舗のみ）
+    const storeConfirms = shiftConfirms.value.filter(shift => 
+      getUserStore(shift.user_id) === activeStore.value
+    )
+    
+    events.push(...storeConfirms.map(shift => ({
       id: `conf_${shift.id}`,
       title: `【確定】${getUserName(shift.user_id)} (${formatJstDateTime(shift.work_start)} - ${formatJstDateTime(shift.work_end)})`,
       start: shift.work_start,
@@ -212,6 +251,7 @@ const displayEvents = computed(() => {
         originalId: shift.id,
         user_id: shift.user_id,
         userName: getUserName(shift.user_id),
+        storeName: getStoreName(getUserStore(shift.user_id)),
         work_start: shift.work_start,
         work_end: shift.work_end,
         isRequest: false
@@ -242,6 +282,18 @@ async function fetchUsers() {
 function getUserName(userId) {
   const user = users.value.find(u => u.id === userId)
   return user ? user.name : '不明なユーザー'
+}
+
+// ユーザーIDから店舗番号を取得する関数
+function getUserStore(userId) {
+  const user = users.value.find(u => u.id === userId)
+  return user ? user.store : 1
+}
+
+// 店舗番号から店舗名を取得する関数
+function getStoreName(storeId) {
+  const store = stores.value.find(s => s.id === storeId)
+  return store ? store.name : '不明な店舗'
 }
 
 // UTCからJSTに変換する関数
@@ -297,15 +349,19 @@ async function fetchShiftConfirms() {
   }
 }
 
-// イベント数のマップを更新
+// イベント数のマップを更新（現在の店舗のみ）
 function updateEventCountMap() {
   const countMap = {}
   
-  // 表示される申請のみをカウント
+  // 表示される申請のみをカウント（現在の店舗のみ）
   const visibleRequests = shiftRequests.value.filter(shift => 
-    !confirmedRequestIds.value.includes(shift.id)
+    !confirmedRequestIds.value.includes(shift.id) && 
+    getUserStore(shift.user_id) === activeStore.value
   )
-  const allShifts = [...visibleRequests, ...shiftConfirms.value]
+  const storeConfirms = shiftConfirms.value.filter(shift => 
+    getUserStore(shift.user_id) === activeStore.value
+  )
+  const allShifts = [...visibleRequests, ...storeConfirms]
   
   allShifts.forEach(shift => {
     if (shift.work_start) {
@@ -331,6 +387,7 @@ function handleEventClick(info) {
   editShift.id = info.event.extendedProps.originalId
   editShift.user_id = info.event.extendedProps.user_id
   editShift.userName = info.event.extendedProps.userName
+  editShift.storeName = info.event.extendedProps.storeName
   editShift.start = utcToJst(info.event.extendedProps.work_start)
   editShift.end = utcToJst(info.event.extendedProps.work_end)
   editShift.isRequest = info.event.extendedProps.isRequest
@@ -554,7 +611,6 @@ const advancedCalendarOptions = computed(() => ({
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  transform: translateX(50%);
 }
 
 .header {
@@ -562,22 +618,45 @@ const advancedCalendarOptions = computed(() => ({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #eee;
   flex-wrap: wrap;
   gap: 15px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
 }
 
 .header h2 {
-  color: #333;
   margin: 0;
+  color: #333;
+  font-size: 24px;
 }
 
 .controls {
   display: flex;
-  align-items: center;
-  gap: 20px;
   flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.store-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.store-tab {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+}
+
+.store-tab.active {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
 }
 
 .checkbox-group {
@@ -591,18 +670,16 @@ const advancedCalendarOptions = computed(() => ({
   align-items: center;
   font-size: 14px;
   color: #495057;
-  font-weight: normal;
 }
 
 .checkbox-label input[type="checkbox"] {
   margin-right: 6px;
-  width: auto;
 }
 
 .no-events {
   margin-top: 20px;
   text-align: center;
-  color: #dc3545;
+  color: #721c24;
   background-color: #f8d7da;
   padding: 15px;
   border-radius: 4px;
@@ -616,50 +693,43 @@ const advancedCalendarOptions = computed(() => ({
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
 }
 
 .popup-content {
   background: white;
   border-radius: 8px;
-  padding: 0;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-height: 90vh;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   overflow-y: auto;
+  max-height: 90vh;
 }
 
 .popup-header {
+  background-color: #28a745;
+  color: white;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-  background-color: #28a745;
-  color: white;
   border-radius: 8px 8px 0 0;
 }
 
 .popup-header h3 {
   margin: 0;
+  font-size: 18px;
 }
 
 .close-btn {
+  font-size: 24px;
   background: none;
   border: none;
-  font-size: 24px;
-  cursor: pointer;
   color: white;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
 }
 
 .close-btn:hover {
@@ -671,69 +741,60 @@ const advancedCalendarOptions = computed(() => ({
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 5px;
   font-weight: bold;
-  color: #333;
+  margin-bottom: 5px;
+  display: block;
 }
 
 .form-control {
   width: 100%;
   padding: 10px;
+  font-size: 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-.form-control:focus {
-  outline: none;
-  border-color: #28a745;
-  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
 }
 
 .readonly-input {
-  background-color: #f8f9fa !important;
-  color: #6c757d !important;
+  background-color: #e9ecef;
+  color: #6c757d;
 }
 
-.user-info {
+.user-info,
+.store-info {
   background-color: #f8f9fa;
   padding: 10px;
   border-radius: 4px;
-  color: #495057;
   font-weight: bold;
 }
 
 .work-hours-display {
   background-color: #e9f7ef;
+  color: #155724;
   padding: 10px;
   border-radius: 4px;
-  margin-bottom: 20px;
-  text-align: center;
   font-weight: bold;
-  color: #155724;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .form-actions {
   display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 20px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .btn {
-  padding: 10px 20px;
+  padding: 10px 15px;
+  font-weight: bold;
+  font-size: 14px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
 }
 
 .btn:disabled {
@@ -750,6 +811,15 @@ const advancedCalendarOptions = computed(() => ({
   background-color: #218838;
 }
 
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
 .btn-danger {
   background-color: #dc3545;
   color: white;
@@ -759,16 +829,6 @@ const advancedCalendarOptions = computed(() => ({
   background-color: #c82333;
 }
 
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #545b62;
-}
-
-/* FullCalendar のスタイル調整 */
 :deep(.fc-event) {
   font-size: 12px;
   cursor: pointer;
@@ -779,45 +839,34 @@ const advancedCalendarOptions = computed(() => ({
 }
 
 :deep(.fc-daygrid-day:hover) {
-  background-color: #f8f9fa;
+  background-color: #f1f1f1;
 }
 
 .few-events {
-  background-color: #ffcccc !important;
+  background-color: #fff3cd !important;
 }
 
-/* レスポンシブ対応 */
+/* レスポンシブ */
 @media (max-width: 768px) {
-  .shift-create-container {
-    transform: none;
-    padding: 10px;
-  }
-  
   .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .form-actions {
     flex-direction: column;
     align-items: stretch;
   }
-  
-  .controls {
-    justify-content: space-between;
-  }
-  
-  .checkbox-group {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .popup-content {
-    width: 95%;
-    margin: 20px;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
+
   .btn {
     width: 100%;
   }
 }
+
 </style>

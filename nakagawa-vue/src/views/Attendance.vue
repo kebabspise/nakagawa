@@ -11,10 +11,53 @@
           <input type="month" v-model="selectedMonth" @change="fetchData">
           <button class="refresh-btn" @click="fetchData">更新</button>
         </div>
+        <div class="store-selector">
+          <label>店舗:</label>
+          <select v-model="selectedStore" @change="filterUsersByStore">
+            <option value="">全店舗</option>
+            <option v-for="store in uniqueStores" :key="store" :value="store">
+               {{ store }}号店
+            </option>
+          </select>
+        </div>
         <div class="export-controls">
-          <button class="export-btn" @click="exportToPDF" :disabled="users.length === 0">
+          <button class="export-btn" @click="showExportOptions" :disabled="filteredUsers.length === 0">
             PDF出力
           </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- PDF出力オプションモーダル -->
+    <div v-if="showExportModal" class="modal-overlay" @click="closeExportModal">
+      <div class="modal-content" @click.stop>
+        <h3>PDF出力オプション</h3>
+        <div class="export-options">
+          <div class="option">
+            <input type="radio" id="current-view" v-model="exportOption" value="current">
+            <label for="current-view">現在の表示内容
+              <span class="option-desc">
+                {{ selectedStore ? `店舗 ${selectedStore}` : '全店舗' }}
+                ({{ filteredUsers.length }}名)
+              </span>
+            </label>
+          </div>
+          <div class="option">
+            <input type="radio" id="all-stores" v-model="exportOption" value="all">
+            <label for="all-stores">全店舗
+              <span class="option-desc">({{ users.length }}名)</span>
+            </label>
+          </div>
+          <div class="option" v-if="uniqueStores.length > 1">
+            <input type="radio" id="by-store" v-model="exportOption" value="by-store">
+            <label for="by-store">店舗別に分割
+              <span class="option-desc">({{ uniqueStores.length }}店舗)</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="export-btn" @click="executeExport">出力実行</button>
+          <button class="cancel-btn" @click="closeExportModal">キャンセル</button>
         </div>
       </div>
     </div>
@@ -27,11 +70,14 @@
       {{ error }}
     </div>
     
-    <div v-else-if="users.length === 0" class="no-data">
-      ユーザーデータがありません
+    <div v-else-if="filteredUsers.length === 0" class="no-data">
+      {{ selectedStore ? `店舗 ${selectedStore} の` : '' }}ユーザーデータがありません
     </div>
     
     <div v-else class="table-container">
+      <div class="store-info" v-if="selectedStore">
+        <h2> {{ selectedStore }}号店 ({{ filteredUsers.length }}名)</h2>
+      </div>
       <table class="attendance-table">
         <thead>
           <tr>
@@ -46,11 +92,12 @@
           </tr>
         </thead>
         <tbody>
-          <template v-for="user in users" :key="user.id">
+          <template v-for="user in filteredUsers" :key="user.id">
             <tr>
               <td class="user-info">
                 <div><strong>{{ user.name }}</strong></div>
                 <div>ID: {{ user.user_id }}</div>
+                <div>店舗: {{ user.store }}号店</div>
                 <div>時給: ¥{{ user.wages }}</div>
               </td>
               <td 
@@ -130,13 +177,28 @@ import BackButton from '../components/BackButton.vue'
 const users = ref([])
 const workLogs = ref([])
 const selectedMonth = ref(new Date().toISOString().slice(0, 7))
+const selectedStore = ref('')
 const loading = ref(false)
 const error = ref(null)
 const editingData = ref({})
 const addingData = ref({})
+const showExportModal = ref(false)
+const exportOption = ref('current')
 const apiUrl = 'http://localhost:5174/api'
 
 // 計算プロパティ
+const uniqueStores = computed(() => {
+  const stores = [...new Set(users.value.map(user => user.store))].sort((a, b) => a - b)
+  return stores
+})
+
+const filteredUsers = computed(() => {
+  if (!selectedStore.value) {
+    return users.value
+  }
+  return users.value.filter(user => user.store == selectedStore.value)
+})
+
 const daysInMonth = computed(() => {
   const [year, month] = selectedMonth.value.split('-').map(Number)
   const daysInMonth = new Date(year, month, 0).getDate()
@@ -159,12 +221,11 @@ const daysInMonth = computed(() => {
   return days
 })
 
-// work_startから日付部分（yyyy-mm-dd）を抽出するヘルパー関数（1日引く）
+// work_startから日付部分（yyyy-mm-dd）を抽出するヘルパー関数
 const getWorkStartDateString = (workStart) => {
   if (!workStart) return null
-  // work_startの日付から1日引いた日付を取得
   const workStartDate = new Date(workStart)
-  const adjustedDate = new Date(workStartDate.getTime())// - (24 * 60 * 60 * 1000)) // 1日（24時間）を引く
+  const adjustedDate = new Date(workStartDate.getTime())
   return adjustedDate.toISOString().split('T')[0]
 }
 
@@ -193,6 +254,44 @@ const fetchData = async () => {
   }
 }
 
+const filterUsersByStore = () => {
+  // 店舗変更時の処理（必要に応じて追加機能を実装）
+}
+
+// PDF出力関連
+const showExportOptions = () => {
+  exportOption.value = 'current'
+  showExportModal.value = true
+}
+
+const closeExportModal = () => {
+  showExportModal.value = false
+}
+
+const executeExport = () => {
+  switch (exportOption.value) {
+    case 'current':
+      exportToPDF(filteredUsers.value, selectedStore.value ? `${selectedStore.value}号店` : '全店舗')
+      break
+    case 'all':
+      exportToPDF(users.value, '全店舗')
+      break
+    case 'by-store':
+      exportByStore()
+      break
+  }
+  closeExportModal()
+}
+
+const exportByStore = () => {
+  uniqueStores.value.forEach(store => {
+    const storeUsers = users.value.filter(user => user.store == store)
+    setTimeout(() => {
+      exportToPDF(storeUsers, `${store}号店`)
+    }, 500) // 各店舗の出力間隔を設ける
+  })
+}
+
 // スクリプト読み込みヘルパー関数
 const loadScript = (src) => {
   return new Promise((resolve, reject) => {
@@ -204,41 +303,10 @@ const loadScript = (src) => {
   })
 }
 
-// jsPDFライブラリを動的に読み込む関数（改良版）
-const loadJsPDF = () => {
-  return new Promise((resolve, reject) => {
-    if (window.jspdf && window.jspdf.jsPDF) {
-      resolve()
-      return
-    }
-    
-    // jsPDFの本体とフォント拡張を読み込み
-    const loadScripts = async () => {
-      try {
-        // jsPDF本体
-        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-        
-        // 少し待ってから初期化チェック
-        await new Promise(resolve => setTimeout(resolve, 200))
-        
-        if (window.jspdf && window.jspdf.jsPDF) {
-          resolve()
-        } else {
-          reject(new Error('jsPDFの初期化に失敗しました'))
-        }
-      } catch (error) {
-        reject(error)
-      }
-    }
-    
-    loadScripts()
-  })
-}
-
-// 印刷可能なHTMLを生成
-const generatePrintableHTML = () => {
+// 印刷可能なHTMLを生成（店舗対応版）
+const generatePrintableHTML = (targetUsers, storeLabel) => {
   const [year, month] = selectedMonth.value.split('-').map(Number)
-  const title = `勤怠記録表 ${year}年${month}月`
+  const title = `勤怠記録表 ${year}年${month}月 - ${storeLabel}`
   
   let html = `<div class="title">${title}</div>`
   
@@ -260,11 +328,12 @@ const generatePrintableHTML = () => {
   
   // データ行
   html += '<tbody>'
-  users.value.forEach(user => {
+  targetUsers.forEach(user => {
     html += '<tr>'
     html += `<td class="user-info">
       <strong>${user.name}</strong><br>
       ID: ${user.user_id}<br>
+      店舗: ${user.store}号店<br>
       時給: ¥${user.wages}
     </td>`
     
@@ -290,7 +359,19 @@ const generatePrintableHTML = () => {
   
   // 統計情報
   html += '<div class="stats"><h3>統計情報</h3>'
-  users.value.forEach(user => {
+  
+  // 店舗別統計
+  const storeStats = {}
+  targetUsers.forEach(user => {
+    if (!storeStats[user.store]) {
+      storeStats[user.store] = {
+        users: [],
+        totalWorkDays: 0,
+        totalMinutes: 0,
+        totalWage: 0
+      }
+    }
+    
     const userLogs = workLogs.value.filter(log => log.user_id === user.id)
     const workDays = userLogs.length
     
@@ -308,18 +389,41 @@ const generatePrintableHTML = () => {
     const remainingMinutes = totalMinutes % 60
     const totalWage = Math.round((totalMinutes / 60) * user.wages)
     
-    html += `<p><strong>${user.name}</strong>: ${workDays}日勤務, ${totalHours}時間${remainingMinutes}分, 給与: ¥${totalWage.toLocaleString()}</p>`
+    storeStats[user.store].users.push({
+      name: user.name,
+      workDays,
+      totalHours,
+      remainingMinutes,
+      totalWage
+    })
+    storeStats[user.store].totalWorkDays += workDays
+    storeStats[user.store].totalMinutes += totalMinutes
+    storeStats[user.store].totalWage += totalWage
   })
+  
+  // 店舗別に統計を表示
+  Object.keys(storeStats).sort((a, b) => a - b).forEach(store => {
+    const stats = storeStats[store]
+    html += `<div class="store-stats"><h4>${store}号店</h4>`
+    
+    stats.users.forEach(user => {
+      html += `<p><strong>${user.name}</strong>: ${user.workDays}日勤務, ${user.totalHours}時間${user.remainingMinutes}分, 給与: ¥${user.totalWage.toLocaleString()}</p>`
+    })
+    
+    const storeTotalHours = Math.floor(stats.totalMinutes / 60)
+    const storeRemainingMinutes = stats.totalMinutes % 60
+    html += `<p class="store-total"><strong>号店計</strong>: ${stats.totalWorkDays}日勤務, ${storeTotalHours}時間${storeRemainingMinutes}分, 給与: ¥${stats.totalWage.toLocaleString()}</p></div>`
+  })
+  
   html += '</div>'
   
   return html
 }
 
-// PDF出力関数（文字化け対策版 - HTML印刷方式）
-const exportToPDF = async () => {
+// PDF出力関数（店舗対応版）
+const exportToPDF = async (targetUsers, storeLabel) => {
   try {
-    // HTML to PDFライブラリを使用する代替案
-    const printContent = generatePrintableHTML()
+    const printContent = generatePrintableHTML(targetUsers, storeLabel)
     
     // 新しいウィンドウでHTML表示
     const printWindow = window.open('', '_blank', 'width=1200,height=800')
@@ -328,7 +432,7 @@ const exportToPDF = async () => {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>勤怠記録表</title>
+        <title>勤怠記録表 - ${storeLabel}</title>
         <style>
           body {
             font-family: 'Meiryo', 'MS PGothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
@@ -373,6 +477,23 @@ const exportToPDF = async () => {
           }
           .stats p {
             margin: 5px 0;
+          }
+          .store-stats {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-left: 3px solid #007bff;
+            background-color: #f8f9fa;
+          }
+          .store-stats h4 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+          }
+          .store-total {
+            font-weight: bold;
+            color: #007bff;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+            margin-top: 5px;
           }
           @media print {
             body { margin: 0; }
@@ -566,86 +687,89 @@ onMounted(() => {
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  background: white;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   padding: 20px;
 }
 
+/* ヘッダー */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 30px;
-  padding-bottom: 20px;
   border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .title {
-  color: #333;
-  margin: 0;
   font-size: 28px;
   font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
+/* コントロールエリア */
 .controls {
   display: flex;
   gap: 20px;
-  align-items: center;
+  flex-wrap: wrap;
 }
 
-.month-selector {
+.month-selector,
+.store-selector,
+.export-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.month-selector input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
+.month-selector input,
+.store-selector select {
+  padding: 6px 10px;
+  font-size: 14px;
   border-radius: 4px;
-  font-size: 16px;
+  border: 1px solid #ccc;
+}
+
+/* ボタン */
+.refresh-btn,
+.export-btn,
+.edit-btn,
+.save-btn,
+.cancel-btn,
+.delete-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .refresh-btn {
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
+  background-color: #007bff;
+  color: #fff;
 }
-
 .refresh-btn:hover {
-  background: #0056b3;
-}
-
-.export-controls {
-  display: flex;
-  gap: 10px;
+  background-color: #0056b3;
 }
 
 .export-btn {
-  padding: 8px 16px;
-  background: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  background-color: #28a745;
+  color: #fff;
 }
-
 .export-btn:hover:not(:disabled) {
-  background: #218838;
+  background-color: #218838;
 }
-
 .export-btn:disabled {
-  background: #6c757d;
+  background-color: #6c757d;
   cursor: not-allowed;
 }
 
+/* テーブルエリア */
 .table-container {
   overflow-x: auto;
   margin-top: 20px;
@@ -663,6 +787,7 @@ onMounted(() => {
   padding: 8px;
   text-align: center;
   font-size: 12px;
+  vertical-align: middle;
 }
 
 .attendance-table th {
@@ -670,14 +795,14 @@ onMounted(() => {
   font-weight: 600;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 1;
 }
 
 .user-info {
+  text-align: left;
   background-color: #f0f8ff;
   font-weight: 600;
   min-width: 120px;
-  text-align: left;
   padding: 10px;
 }
 
@@ -687,20 +812,13 @@ onMounted(() => {
   text-orientation: mixed;
   min-width: 60px;
   font-size: 11px;
+  white-space: pre-line;
 }
 
+/* 勤務時間セル */
 .work-time-cell {
   min-width: 80px;
   padding: 4px;
-}
-
-.time-input {
-  width: 100%;
-  padding: 2px 4px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  font-size: 11px;
-  text-align: center;
 }
 
 .time-display {
@@ -708,32 +826,33 @@ onMounted(() => {
   line-height: 1.2;
 }
 
-.edit-btn, .save-btn, .cancel-btn, .delete-btn {
-  padding: 2px 6px;
-  margin: 1px;
-  border: none;
+.time-input {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 11px;
+  text-align: center;
+  border: 1px solid #ccc;
   border-radius: 3px;
-  cursor: pointer;
-  font-size: 10px;
 }
 
+/* 編集・追加用ボタン */
 .edit-btn {
-  background: #28a745;
+  background-color: #28a745;
   color: white;
 }
 
 .save-btn {
-  background: #007bff;
+  background-color: #007bff;
   color: white;
 }
 
 .cancel-btn {
-  background: #6c757d;
+  background-color: #6c757d;
   color: white;
 }
 
 .delete-btn {
-  background: #dc3545;
+  background-color: #dc3545;
   color: white;
 }
 
@@ -743,49 +862,80 @@ onMounted(() => {
   border-radius: 3px;
   transition: background-color 0.2s;
 }
-
 .empty-cell:hover {
   background-color: #f0f8ff;
 }
 
-.add-btn {
-  background: #17a2b8;
-  color: white;
-  padding: 2px 6px;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 10px;
-}
-
-.loading {
+/* ステータス表示 */
+.loading,
+.error,
+.no-data {
   text-align: center;
-  padding: 40px;
-  color: #666;
+  padding: 30px;
+  font-size: 14px;
+  font-style: italic;
 }
 
 .error {
   color: #dc3545;
-  text-align: center;
-  padding: 20px;
-  background: #f8d7da;
+  background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   border-radius: 4px;
-  margin: 20px 0;
 }
 
-.no-data {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
-}
-
+/* 曜日ハイライト */
 .weekend {
-  background-color: #ffe6e6;
+  background-color: #ffe6e6 !important;
 }
 
 .today {
-  background-color: #fff3cd;
+  background-color: #fff3cd !important;
+}
+
+/* モーダル */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.export-options .option {
+  margin-bottom: 12px;
+}
+
+.option-desc {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* ストア情報表示 */
+.store-info {
+  margin-bottom: 12px;
+  font-weight: bold;
+  font-size: 16px;
 }
 </style>
