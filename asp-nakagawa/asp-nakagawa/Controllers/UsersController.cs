@@ -5,7 +5,7 @@ using asp_nakagawa.Data;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UsersController : ControllerBase 
+public class UsersController : ControllerBase
 {
     private readonly AppDBContext _context;
 
@@ -29,9 +29,9 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("by-userid/{user_id}")] 
+    [HttpGet("by-userid/{user_id}")]
     public async Task<IActionResult> GetByUserId(int user_id)
-    { 
+    {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.user_id == user_id);
         if (user == null) return NotFound();
         return Ok(user);
@@ -52,8 +52,8 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Create(User user)
     {
         _context.Users.Add(user);
-        await _context.SaveChangesAsync();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-        return CreatedAtAction(nameof(GetByUserId), new {  user_id = user.id }, user);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetByUserId), new { user_id = user.id }, user);
     }
 
     [HttpPut("by-userid/{user_id}")]
@@ -66,6 +66,7 @@ public class UsersController : ControllerBase
         user.pass = updated.pass;
         user.admin = updated.admin;
         user.wages = updated.wages;
+        user.store = updated.store;
 
         await _context.SaveChangesAsync();
         return NoContent();

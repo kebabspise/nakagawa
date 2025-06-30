@@ -82,14 +82,16 @@
           
           <div class="form-group">
             <label for="store">店舗番号:</label>
-            <input 
-              id="store"
-              v-model.number="formData.store" 
-              type="number" 
-              required
-              min="1"
-              class="form-control"
-            />
+              <select 
+                id="store"
+                v-model.number="formData.store" 
+                required
+                class="form-control"
+              >
+                <option :value="1">1号店</option>
+                <option :value="2">2号店</option>
+                <option :value="3">3号店</option>
+              </select>
           </div>
           
           <div class="form-actions">
@@ -131,7 +133,7 @@
           >
             <option value="">全店舗</option>
             <option v-for="storeNum in availableStores" :key="storeNum" :value="storeNum">
-              店舗{{ storeNum }}
+              {{ storeNum }}号店
             </option>
           </select>
         </div>
@@ -146,7 +148,7 @@
         <h3>
           従業員一覧
           <span v-if="filterStore" class="filter-indicator">
-            （店舗{{ filterStore }}のみ表示）
+            （{{ filterStore }}号店のみ表示）
           </span>
         </h3>
         <button class="btn btn-secondary" @click="loadAllUsers">
@@ -180,7 +182,7 @@
             </div>
             <div class="detail-item">
               <span class="label">店舗番号:</span>
-              <span class="value store-badge">店舗{{ user.store }}</span>
+              <span class="value store-badge">{{ user.store }}号店</span>
             </div>
             <div class="detail-item">
               <span class="label">管理者権限:</span>
@@ -237,7 +239,7 @@
           </div>
           <div class="detail-item">
             <span class="label">店舗番号:</span>
-            <span class="value store-badge">店舗{{ currentUser.store }}</span>
+            <span class="value store-badge">{{ currentUser.store }}号店</span>
           </div>
           <div class="detail-item">
             <span class="label">管理者権限:</span>
