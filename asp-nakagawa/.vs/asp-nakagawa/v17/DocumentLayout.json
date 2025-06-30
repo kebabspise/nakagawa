@@ -68,7 +68,7 @@
               "RelativeDocumentMoniker": "asp-nakagawa\\Data\\SeedData.cs",
               "ToolTip": "C:\\data\\nakagawa\\asp-nakagawa\\asp-nakagawa\\Data\\SeedData.cs",
               "RelativeToolTip": "asp-nakagawa\\Data\\SeedData.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABEAAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABcAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-23T06:32:45.386Z",
               "EditorCaption": ""
@@ -83,8 +83,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\User.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:18:56.497Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:18:56.497Z"
             },
             {
               "$type": "Document",
@@ -96,8 +95,7 @@
               "RelativeToolTip": "asp-nakagawa\\Models\\Work_log.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-23T02:25:46.314Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-23T02:25:46.314Z"
             },
             {
               "$type": "Document",
