@@ -16,7 +16,8 @@ namespace asp_nakagawa.Data
                     name = "谷川様",
                     pass = "pass",
                     admin = true,
-                    wages = 2500
+                    wages = 2500,
+                    store = 1
                 };
                 context.Users.Add(sampleUser);
                 context.SaveChanges();  
